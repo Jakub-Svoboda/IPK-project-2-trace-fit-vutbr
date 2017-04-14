@@ -9,6 +9,8 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/ip_icmp.h>
+#include <pthread.h>
+#include <errqueue.h>
 
 #define PORTNUM 33434
 using namespace std;
@@ -68,6 +70,7 @@ void validateArgs(string *address, int argc, char* argv[],int * first_ttl, int *
 	}
 }
 
+
 int main(int argc, char* argv[]){
 	if(argc <2 or argc>6){
 		fprintf(stderr,"Error: Wrong number of arguments %d \n",argc);
@@ -87,8 +90,10 @@ int main(int argc, char* argv[]){
 		cout<<"translation needed"<<endl;
 		exit(1);
 	}
+	
 	uint32_t clientSocket;
-	if ((clientSocket=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) <=0){
+	//create a socket
+	if ((clientSocket=socket(AF_INET, SOCK_DGRAM, 0)) <=0){
         fprintf(stderr,"Socket failed to create.\n");
         exit(EXIT_FAILURE);
     }
@@ -96,14 +101,15 @@ int main(int argc, char* argv[]){
 	uint32_t slen=sizeof(destinationAddress);
 	
 	struct icmphdr packet;
-	packet.type = ICMP_ECHO;
+	packet.type = 8;
 	packet.code = 0;
 	packet.un.echo.id=getpid();
 	packet.un.echo.sequence=1;
 	packet.checksum=0;
 	int val=255;
 	setsockopt(clientSocket, SOL_IP, IP_TTL, &val, sizeof(val));
-	
+	val=2;
+	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 	
 	
 	//send the message
@@ -111,19 +117,76 @@ int main(int argc, char* argv[]){
 		fprintf(stderr,"sendto() failed with error code \n");
 		exit(-1);
 	}
-	
-	
+
+
 	//receive
 	char buf[1000];
 	memset(buf,'\0', 1000);
-	int bytes;
-	
-	if ((bytes=recvfrom(clientSocket, buf, 1000, 0,  (struct sockaddr *)&destinationAddress, &slen)) <= 0){
-		fprintf(stderr,"recvfrom() failed. \n");
-		exit(-1);
-	}else{
-		cout<<bytes<<endl;
-	}
 
+	
+	int on = 1;
+	/* Set the option, so we can receive errors */
+	setsockopt(clientSocket, SOL_IP, IP_RECVERR,(char*)&on, sizeof(on));
+	int return_status;
+	struct iovec iov;                       /* Data array */
+	struct msghdr msg;                      /* Message header */
+	struct cmsghdr *cmsg;                   /* Control related data */
+	struct sock_extended_err *sock_err;     /* Struct describing the error */ 
+	struct icmphdr icmph;                   /* ICMP header */
+	struct sockaddr_in remote;              /* Our socket */
+	
+	while(1){
+		iov.iov_base = &icmph;
+		iov.iov_len = sizeof(icmph);
+		msg.msg_name = (void*)&remote;
+		msg.msg_namelen = sizeof(remote);
+		msg.msg_iov = &iov;
+		msg.msg_iovlen = 1;
+		msg.msg_flags = 0;
+		msg.msg_control = buf;
+		msg.msg_controllen = sizeof(buf);
+			
+		/* Receiving errors flog is set */
+		return_status = recvmsg(clientSocket, &msg, MSG_ERRQUEUE);
+		if (return_status < 0) {
+			continue;
+		}	
+		for (cmsg = CMSG_FIRSTHDR(&msg); cmsg; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
+			// Ip level 
+			if (cmsg->cmsg_level == SOL_IP){
+				// We received an error 
+				if (cmsg->cmsg_type == IP_RECVERR){
+					fprintf(stderr, "We got IP_RECVERR message\n");
+					sock_err = (struct sock_extended_err*)CMSG_DATA(cmsg); 
+					if (sock_err){
+						// We are intrested in ICMP errors 
+						if (sock_err->ee_origin == SO_EE_ORIGIN_ICMP){
+							// Handle ICMP errors types 
+					//		switch (sock_err->ee_type){
+					//			case ICMP_NET_UNREACH:
+									// Hendle this error 
+					//				fprintf(stderr, "Network Unreachable Error\n");
+					//				break;
+					//			case ICMP_HOST_UNREACH:
+									// Hendle this error 
+									fprintf(stderr, "Host Unreachable Error\n");
+					//				break;
+								// Handle all other cases. Find more errors :
+								// http://lxr.linux.no/linux+v3.5/include/linux/icmp.h#L39
+								//
+
+					//		}
+						}
+					}
+				}
+			} 
+		}
+	}	
+		
+		
+	
+	
+	
+	
 	
 }
