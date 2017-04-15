@@ -10,11 +10,12 @@
 #include <netdb.h>
 #include <netinet/ip_icmp.h>
 #include <pthread.h>
+#include <linux/errqueue.h>
 
 #define PORTNUM 55555
 using namespace std;
 
-void getIpv4(struct hostent *server, string address, sockaddr_in * destinationAddress){
+sockaddr_in getIpv4(struct hostent *server, string address, sockaddr_in * destinationAddress){
 	bzero(destinationAddress, sizeof(destinationAddress));		//null the server address
 	uint32_t addressNum = inet_addr(address.c_str()); 
 	if(addressNum == INADDR_NONE){
@@ -24,8 +25,8 @@ void getIpv4(struct hostent *server, string address, sockaddr_in * destinationAd
 	}	
 	destinationAddress->sin_family=AF_INET;
 	destinationAddress->sin_port = htons(PORTNUM);
-	bcopy(to_string(addressNum).c_str(), (char *)&destinationAddress->sin_addr.s_addr, strlen(to_string(addressNum).c_str()));
-	
+	//bcopy(to_string(addressNum).c_str(), (char *)&destinationAddress->sin_addr.s_addr, strlen(to_string(addressNum).c_str()));
+	return *destinationAddress;
 }
 
 //Check whether the arguments are valid or not and assigns the values to apropriate variables.
@@ -83,14 +84,13 @@ int main(int argc, char* argv[]){
 	struct sockaddr_in destinationAddress; 
 	//struct sockaddr_in6 destinationAddress6;
 	if(string::npos!=address.find('.')){				//ipv4
-		getIpv4(server, address, &destinationAddress);
+		destinationAddress=getIpv4(server, address, &destinationAddress);
 	}else if(string::npos!=address.find(':')) {											//ipv6
 		cout<<"ipv6"<<endl;
 	}else{
 		cout<<"translation needed"<<endl;
 		exit(1);
 	}
-	
 	uint32_t clientSocket;
 	//create a socket
 	if ((clientSocket=socket(AF_INET, SOCK_DGRAM, 0)) <=0){
@@ -110,7 +110,6 @@ int main(int argc, char* argv[]){
 	val=2;
 	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 	
-
 	//send the message
 	if (sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen) <= 0){
 		fprintf(stderr,"sendto() failed with error code \n");
@@ -152,6 +151,7 @@ int main(int argc, char* argv[]){
 			continue;
 		}else{
 			cout<<"got something"<<endl;
+			break;
 		}	
 		cout<<"2BAR"<<endl;
 		for (cmsg = CMSG_FIRSTHDR(&msg); cmsg; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]){
 				if (cmsg->cmsg_type == IP_RECVERR){
 					fprintf(stderr, "We got IP_RECVERR message\n");
 					sock_err = (struct sock_extended_err*)CMSG_DATA(cmsg); 
-				/*	if (sock_err){
+					if (sock_err){
 						// We are intrested in ICMP errors 
 						if (sock_err->ee_origin == 2){
 							// Handle ICMP errors types 
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]){
 
 							}
 						}
-					}*/
+					}
 				}
 			} 
 		}
