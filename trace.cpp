@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include <linux/errqueue.h>
 
-#define PORTNUM 55555
+#define PORTNUM 55566
 using namespace std;
 
 sockaddr_in getIpv4(struct hostent *server, string address, sockaddr_in * destinationAddress){
@@ -101,14 +101,16 @@ int main(int argc, char* argv[]){
 	uint32_t slen=sizeof(destinationAddress);
 	
 	struct icmphdr packet;
-	packet.type = 8;
-	packet.code = 0;
-	packet.checksum=0;
+	memset(&packet,0, sizeof(packet));
+	packet.type = ICMP_ECHO;
+	packet.un.echo.id = getpid();
+	//packet.code = 0;
+	//packet.checksum=0;
 	
 	int val=255;
 	setsockopt(clientSocket, SOL_IP, IP_TTL, &val, sizeof(val));
 	val=2;
-	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
+	//setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 	
 	//send the message
 	if (sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen) <= 0){
@@ -120,24 +122,25 @@ int main(int argc, char* argv[]){
 	//receive
 	char buf[1000];
 	memset(buf,'\0', 1000);
-
 	
-	int on = 1;
+	val=255;
+	setsockopt(clientSocket, SOL_IP, IP_TTL, &val, sizeof(val));
+	val=2;
+	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
+	val=1;
 	/* Set the option, so we can receive errors */
-	setsockopt(clientSocket, SOL_IP, IP_RECVERR,(char*)&on, sizeof(on));
+	setsockopt(clientSocket, SOL_IP, IP_RECVERR,(char*)&val, sizeof(val));
 	int return_status;
 	struct iovec iov;                       /* Data array */
 	struct msghdr msg;                      /* Message header */
 	struct cmsghdr *cmsg;                   /* Control related data */
 	struct sock_extended_err *sock_err;     /* Struct describing the error */ 
-	struct icmphdr icmph;                   /* ICMP header */
-	struct sockaddr_in remote;              /* Our socket */
 	
 	while(1){
-		iov.iov_base = &icmph;
-		iov.iov_len = sizeof(icmph);
-		msg.msg_name = (void*)&remote;
-		msg.msg_namelen = sizeof(remote);
+		iov.iov_base = &packet;
+		iov.iov_len = sizeof(packet);
+		msg.msg_name = (void*)&clientSocket;
+		msg.msg_namelen = sizeof(clientSocket);
 		msg.msg_iov = &iov;
 		msg.msg_iovlen = 1;
 		msg.msg_flags = 0;
