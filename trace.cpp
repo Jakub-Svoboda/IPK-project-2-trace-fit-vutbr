@@ -10,9 +10,8 @@
 #include <netdb.h>
 #include <netinet/ip_icmp.h>
 #include <pthread.h>
-#include <errqueue.h>
 
-#define PORTNUM 33434
+#define PORTNUM 55555
 using namespace std;
 
 void getIpv4(struct hostent *server, string address, sockaddr_in * destinationAddress){
@@ -71,6 +70,7 @@ void validateArgs(string *address, int argc, char* argv[],int * first_ttl, int *
 }
 
 
+
 int main(int argc, char* argv[]){
 	if(argc <2 or argc>6){
 		fprintf(stderr,"Error: Wrong number of arguments %d \n",argc);
@@ -103,15 +103,14 @@ int main(int argc, char* argv[]){
 	struct icmphdr packet;
 	packet.type = 8;
 	packet.code = 0;
-	packet.un.echo.id=getpid();
-	packet.un.echo.sequence=1;
 	packet.checksum=0;
+	
 	int val=255;
 	setsockopt(clientSocket, SOL_IP, IP_TTL, &val, sizeof(val));
 	val=2;
 	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 	
-	
+
 	//send the message
 	if (sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen) <= 0){
 		fprintf(stderr,"sendto() failed with error code \n");
@@ -149,8 +148,12 @@ int main(int argc, char* argv[]){
 		/* Receiving errors flog is set */
 		return_status = recvmsg(clientSocket, &msg, MSG_ERRQUEUE);
 		if (return_status < 0) {
+			//cout<<return_status<<endl;
 			continue;
+		}else{
+			cout<<"got something"<<endl;
 		}	
+		cout<<"2BAR"<<endl;
 		for (cmsg = CMSG_FIRSTHDR(&msg); cmsg; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
 			// Ip level 
 			if (cmsg->cmsg_level == SOL_IP){
@@ -158,26 +161,26 @@ int main(int argc, char* argv[]){
 				if (cmsg->cmsg_type == IP_RECVERR){
 					fprintf(stderr, "We got IP_RECVERR message\n");
 					sock_err = (struct sock_extended_err*)CMSG_DATA(cmsg); 
-					if (sock_err){
+				/*	if (sock_err){
 						// We are intrested in ICMP errors 
-						if (sock_err->ee_origin == SO_EE_ORIGIN_ICMP){
+						if (sock_err->ee_origin == 2){
 							// Handle ICMP errors types 
-					//		switch (sock_err->ee_type){
-					//			case ICMP_NET_UNREACH:
+							switch (sock_err->ee_type){
+								case ICMP_NET_UNREACH:
 									// Hendle this error 
-					//				fprintf(stderr, "Network Unreachable Error\n");
-					//				break;
-					//			case ICMP_HOST_UNREACH:
+									fprintf(stderr, "Network Unreachable Error\n");
+									break;
+								case ICMP_HOST_UNREACH:
 									// Hendle this error 
 									fprintf(stderr, "Host Unreachable Error\n");
-					//				break;
+									break;
 								// Handle all other cases. Find more errors :
 								// http://lxr.linux.no/linux+v3.5/include/linux/icmp.h#L39
 								//
 
-					//		}
+							}
 						}
-					}
+					}*/
 				}
 			} 
 		}
