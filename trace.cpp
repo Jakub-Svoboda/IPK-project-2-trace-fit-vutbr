@@ -104,7 +104,7 @@ int main(int argc, char* argv[]){
 	memset(&packet,0, sizeof(packet));
 	packet.type = ICMP_ECHO;
 	packet.un.echo.id = getpid();
-	//packet.code = 0;
+	packet.code = 0;
 	//packet.checksum=0;
 	
 	int val=255;
