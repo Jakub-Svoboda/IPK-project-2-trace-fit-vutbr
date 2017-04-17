@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include <linux/errqueue.h>
 
-#define PORTNUM 57566
+#define PORTNUM 57588
 using namespace std;
 
 sockaddr_in getIpv4(struct hostent *server, string address, sockaddr_in * destinationAddress){
@@ -70,8 +70,6 @@ void validateArgs(string *address, int argc, char* argv[],int * first_ttl, int *
 	}
 }
 
-
-
 int main(int argc, char* argv[]){
 	if(argc <2 or argc>6){
 		fprintf(stderr,"Error: Wrong number of arguments %d \n",argc);
@@ -103,31 +101,30 @@ int main(int argc, char* argv[]){
 	struct icmphdr packet;
 	memset(&packet,0, sizeof(packet));
 	packet.type = ICMP_ECHO;
-	packet.un.echo.id = getpid();
 	packet.code = 0;
-	//packet.checksum=0;
-	
+	packet.un.echo.id = getpid();
 
 	
-	int val=30;
-	//setsockopt(clientSocket, SOL_IP, IP_TTL, &val, sizeof(val));
-	val=2;
+	//packet.checksum=0;
+	
+	int ttl = 60; /* max = 255 */
+	setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
+	cout <<errno << endl;
+	int val=2;
 	//setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 	
 	//send the message
-	if (sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen) <= 0){
-		fprintf(stderr,"sendto() failed with error code \n");
+	if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
+		fprintf(stderr,"sendto() failed with error code %d\n",errno);
 		exit(-1);
 	}
-
 
 	//receive
 	char buf[1000];
 	memset(buf,'\0', 1000);
-	
 
 	val=2;
-	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
+	//setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 	val=1;
 	/* Set the option, so we can receive errors */
 	setsockopt(clientSocket, SOL_IP, IP_RECVERR,(char*)&val, sizeof(val));
@@ -157,7 +154,7 @@ int main(int argc, char* argv[]){
 			cout<<"got something"<<endl;
 			break;
 		}	
-		cout<<"2BAR"<<endl;
+		//cout<<"2BAR"<<endl;
 		for (cmsg = CMSG_FIRSTHDR(&msg); cmsg; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
 			// Ip level 
 			if (cmsg->cmsg_level == SOL_IP){
