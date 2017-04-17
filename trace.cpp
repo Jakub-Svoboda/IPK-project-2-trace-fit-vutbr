@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include <linux/errqueue.h>
 
-#define PORTNUM 55566
+#define PORTNUM 57566
 using namespace std;
 
 sockaddr_in getIpv4(struct hostent *server, string address, sockaddr_in * destinationAddress){
@@ -107,8 +107,10 @@ int main(int argc, char* argv[]){
 	packet.code = 0;
 	//packet.checksum=0;
 	
-	int val=255;
-	setsockopt(clientSocket, SOL_IP, IP_TTL, &val, sizeof(val));
+
+	
+	int val=30;
+	//setsockopt(clientSocket, SOL_IP, IP_TTL, &val, sizeof(val));
 	val=2;
 	//setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 	
@@ -123,8 +125,7 @@ int main(int argc, char* argv[]){
 	char buf[1000];
 	memset(buf,'\0', 1000);
 	
-	val=255;
-	setsockopt(clientSocket, SOL_IP, IP_TTL, &val, sizeof(val));
+
 	val=2;
 	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 	val=1;
