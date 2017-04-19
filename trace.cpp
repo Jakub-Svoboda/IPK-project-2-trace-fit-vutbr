@@ -109,7 +109,6 @@ int main(int argc, char* argv[]){
 	
 	int ttl = 60; /* max = 255 */
 	setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
-	cout <<errno << endl;
 	int val=2;
 	//setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 	
