@@ -107,7 +107,7 @@ int main(int argc, char* argv[]){
 	
 	//packet.checksum=0;
 	
-	int ttl = 60; /* max = 255 */
+	int ttl = 5; /* max = 255 */
 	setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
 	int val=2;
 	//setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
