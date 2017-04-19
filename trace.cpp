@@ -175,6 +175,7 @@ int main(int argc, char* argv[]){
 						 /* získame adresu - ak to robíte všeobecne tak sockaddr_storage */
 						 struct sockaddr_in *sin = (struct sockaddr_in *)(e+1); 
 						cout<<sin->sin_addr.s_addr<<endl;
+						cout<<inet_ntop(sin->sin_addr.s_addr)<<endl;
 						 /*
 						 * v sin máme zdrojovú adresu
 						 * stačí ju už len vypísať viď: inet_ntop alebo getnameinfo
