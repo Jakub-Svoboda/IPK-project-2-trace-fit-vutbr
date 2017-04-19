@@ -162,6 +162,7 @@ int main(int argc, char* argv[]){
 				if (cmsg->cmsg_type == IP_RECVERR){
 					fprintf(stderr, "We got IP_RECVERR message\n");
 					sock_err = (struct sock_extended_err*)CMSG_DATA(cmsg); 
+					cout <<sock_err<<endl;
 					if (sock_err){
 						// We are intrested in ICMP errors 
 						if (sock_err->ee_origin == 2){
