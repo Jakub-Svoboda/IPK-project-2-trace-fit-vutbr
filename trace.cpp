@@ -152,7 +152,7 @@ int main(int argc, char* argv[]){
 			continue;
 		}else{
 			cout<<"got something"<<endl;
-			break;
+			//break;
 		}	
 		//cout<<"2BAR"<<endl;
 		for (cmsg = CMSG_FIRSTHDR(&msg); cmsg; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
