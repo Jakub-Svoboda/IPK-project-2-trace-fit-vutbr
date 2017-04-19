@@ -112,6 +112,7 @@ int main(int argc, char* argv[]){
 	int val=2;
 	//setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 	
+	
 	//send the message
 	if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
 		fprintf(stderr,"sendto() failed with error code %d\n",errno);
