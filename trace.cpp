@@ -171,6 +171,7 @@ int main(int argc, char* argv[]){
 					 //bude treba niečo podobné aj pre IPv6 (hint: iný flag)
 					 if (e && e->ee_origin == SO_EE_ORIGIN_ICMP) {
 
+					 
 						 /* získame adresu - ak to robíte všeobecne tak sockaddr_storage */
 						 struct sockaddr_in *sin = (struct sockaddr_in *)(e+1); 
 						cout<<sin->sin_addr.s_addr<<endl;
