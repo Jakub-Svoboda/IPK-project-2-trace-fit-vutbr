@@ -135,57 +135,76 @@ int main(int argc, char* argv[]){
 	struct sock_extended_err *sock_err;     /* Struct describing the error */ 
 	
 	while(1){
-		iov.iov_base = &packet;
-		iov.iov_len = sizeof(packet);
-		msg.msg_name = (void*)&clientSocket;
-		msg.msg_namelen = sizeof(clientSocket);
-		msg.msg_iov = &iov;
-		msg.msg_iovlen = 1;
-		msg.msg_flags = 0;
-		msg.msg_control = buf;
-		msg.msg_controllen = sizeof(buf);
-			
-		/* Receiving errors flog is set */
-		return_status = recvmsg(clientSocket, &msg, MSG_ERRQUEUE);
-		if (return_status < 0) {
-			//cout<<return_status<<endl;
-			continue;
-		}else{
-			cout<<"got something"<<endl;
-			//break;
-		}	
-		//cout<<"2BAR"<<endl;
-		for (cmsg = CMSG_FIRSTHDR(&msg); cmsg; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
-			// Ip level 
-			if (cmsg->cmsg_level == SOL_IP){
-				// We received an error 
-				if (cmsg->cmsg_type == IP_RECVERR){
-					fprintf(stderr, "We got IP_RECVERR message\n");
-					sock_err = (struct sock_extended_err*)CMSG_DATA(cmsg); 
-					cout <<sock_err<<endl;
-					if (sock_err){
-						// We are intrested in ICMP errors 
-						if (sock_err->ee_origin == 2){
-							// Handle ICMP errors types 
-							switch (sock_err->ee_type){
-								case ICMP_NET_UNREACH:
-									// Hendle this error 
-									fprintf(stderr, "Network Unreachable Error\n");
-									break;
-								case ICMP_HOST_UNREACH:
-									// Hendle this error 
-									fprintf(stderr, "Host Unreachable Error\n");
-									break;
-								// Handle all other cases. Find more errors :
-								// http://lxr.linux.no/linux+v3.5/include/linux/icmp.h#L39
-								//
+		//štruktúra pre adresu kompatibilná s IPv4 aj v6
+		struct sockaddr_storage target; 
+		char cbuf[512];
+		struct iovec iov; //io štruktúra
+    
+		struct msghdr msg; //prijatá správa - môže obsahovať viac control hlavičiek
+		struct cmsghdr *cmsg; //konkrétna control hlavička
 
-							}
-						}
+		struct icmphdr icmph; //ICMP hlavička
+			
+		iov.iov_base = &icmph; //budeme prijímať ICMP hlavičku
+		iov.iov_len = sizeof(icmph); //dĺžka bude veľkosť ICMP hlavičky (obviously)
+
+		msg.msg_name = &target; //tu sa uloží cieľ správy, teda adresa nášho stroja
+		msg.msg_namelen = sizeof(target); //obvious
+		msg.msg_iov = &iov; //opäť tá icmp hlavička
+		msg.msg_iovlen = 1; //počet hlavičiek
+		msg.msg_flags = 0; //žiadne flagy
+		msg.msg_control = cbuf; //predpokladám že buffer pre control správy
+		msg.msg_controllen = sizeof(cbuf);//obvious	
+	
+		/* Receiving errors flog is set */
+		while(1){
+			int res = recvmsg(clientSocket, &msg, MSG_ERRQUEUE); //prijme správu
+			if (res<0) continue;
+			
+			/* lineárne viazaný zoznam - dá sa to napísať aj krajšie... */
+			for (cmsg = CMSG_FIRSTHDR(&msg);  cmsg; cmsg =CMSG_NXTHDR(&msg, cmsg)) {
+				/* skontrolujeme si pôvod správy - niečo podobné nám bude treba aj pre IPv6 */
+				if (cmsg->cmsg_level == SOL_IP && cmsg->cmsg_type == IP_RECVERR){
+					 //získame dáta z hlavičky
+					 struct sock_extended_err *e = (struct sock_extended_err*) CMSG_DATA(cmsg);
+
+					 //bude treba niečo podobné aj pre IPv6 (hint: iný flag)
+					 if (e && e->ee_origin == SO_EE_ORIGIN_ICMP) {
+
+						 /* získame adresu - ak to robíte všeobecne tak sockaddr_storage */
+						 struct sockaddr_in *sin = (struct sockaddr_in *)(e+1); 
+						cout<<sin->sin_addr.s_addr<<endl;
+						 /*
+						 * v sin máme zdrojovú adresu
+						 * stačí ju už len vypísať viď: inet_ntop alebo getnameinfo
+						 */
+
+					//	 if (e->ee_type == ...)
+					//	 {
+							 /*
+							 * Overíme si všetky možné návratové správy
+							 * hlavne ICMP_TIME_EXCEEDED and ICMP_DEST_UNREACH
+							 * v prvom prípade inkrementujeme TTL a pokračujeme
+							 * v druhom prípade sme narazili na cieľ
+							 * 
+							 * kódy pre IPv4 nájdete tu
+							 * http://man7.org/linux/man-pages/man7/icmp.7.html
+							 * 
+							 * kódy pre IPv6 sú ODLIŠNÉ!:
+							 * nájdete ich napríklad tu https://tools.ietf.org/html/rfc4443
+							 * strana 4
+							 */
+					//	 }
 					}
-				}
-			} 
+				}          
+			}  
+						
+			
 		}
+		
+		
+		
+		
 	}	
 		
 		
