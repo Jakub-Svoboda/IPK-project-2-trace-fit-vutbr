@@ -172,10 +172,13 @@ int main(int argc, char* argv[]){
 					 if (e && e->ee_origin == SO_EE_ORIGIN_ICMP) {
 
 					 
-						 /* získame adresu - ak to robíte všeobecne tak sockaddr_storage */
-						 struct sockaddr_in *sin = (struct sockaddr_in *)(e+1); 
+						/* získame adresu - ak to robíte všeobecne tak sockaddr_storage */
+						struct sockaddr_in *sin = (struct sockaddr_in *)(e+1); 
 						cout<<sin->sin_addr.s_addr<<endl;
-						cout<<inet_ntop(sin->sin_addr.s_addr)<<endl;
+						
+						char str[4082];
+						inet_ntop(AF_INET, &(sin->sin_addr), str, 4082);
+						cout<<str<<endl;
 						 /*
 						 * v sin máme zdrojovú adresu
 						 * stačí ju už len vypísať viď: inet_ntop alebo getnameinfo
