@@ -169,6 +169,7 @@ int main(int argc, char* argv[]){
 						if(!strcmp(str, adress.c_str())){
 							cout<<"target reached"<< endl;
 						}
+						
 						 /*
 						 * v sin máme zdrojovú adresu
 						 * stačí ju už len vypísať viď: inet_ntop alebo getnameinfo
