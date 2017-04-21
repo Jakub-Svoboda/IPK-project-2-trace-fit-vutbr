@@ -164,6 +164,7 @@ int main(int argc, char* argv[]){
 							cout<<"storage reached"<< endl;
 							exit(0);
 						}
+						cout<<"setting ttl to: "<<first_ttl<<endl;
 						setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
 						//send the message
 						if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
