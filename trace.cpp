@@ -121,7 +121,6 @@ int main(int argc, char* argv[]){
 
 	//receive
 	
-
 	val=2;
 	//setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 	val=1;
