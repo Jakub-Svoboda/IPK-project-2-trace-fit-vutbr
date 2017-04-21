@@ -118,35 +118,29 @@ int main(int argc, char* argv[]){
 	//receive
 	val=1;
 	/* Set the option, so we can receive errors */
-	setsockopt(clientSocket, SOL_IP, IP_RECVERR,(char*)&val, sizeof(val));
-	int return_status;
-	struct iovec iov;                       /* Data array */
-	struct msghdr msg;                      /* Message header */
-	struct cmsghdr *cmsg;                   /* Control related data */
-	struct sock_extended_err *sock_err;     /* Struct describing the error */ 
+	setsockopt(clientSocket, SOL_IP, IP_RECVERR,(char*)&val, sizeof(val));	
 	
-	while(1){
-		//štruktúra pre adresu kompatibilná s IPv4 aj v6
-		struct sockaddr_storage target; 
-		char buf[1000];
+	struct sockaddr_storage storage; //štruktúra pre adresu kompatibilná s IPv4 aj v6
+	char buf[1000];
+	struct iovec iov; //io štruktúra
+    struct msghdr msg; //prijatá správa - môže obsahovať viac control hlavičiek
+	struct cmsghdr *cmsg; //konkrétna control hlavička
+	struct icmphdr icmph; //ICMP hlavička
+	iov.iov_base = &icmph; //budeme prijímať ICMP hlavičku
+	iov.iov_len = sizeof(icmph); //dĺžka bude veľkosť ICMP hlavičky (obviously)
+
+	msg.msg_name = &storage; //tu sa uloží cieľ správy, teda adresa nášho stroja
+	msg.msg_namelen = sizeof(storage); //obvious
+	msg.msg_iov = &iov; //opäť tá icmp hlavička
+	msg.msg_iovlen = 1; //počet hlavičiek
+	msg.msg_flags = 0; //žiadne flagy
+	msg.msg_control = buf; //predpokladám že buffer pre control správy
+	msg.msg_controllen = sizeof(buf);//obvious	
+	
+	
+	for(; first_ttl<=max_ttl; first_ttl++){
 		memset(buf,'\0', 1000);
-		struct iovec iov; //io štruktúra
-    
-		struct msghdr msg; //prijatá správa - môže obsahovať viac control hlavičiek
-		struct cmsghdr *cmsg; //konkrétna control hlavička
-
-		struct icmphdr icmph; //ICMP hlavička
-			
-		iov.iov_base = &icmph; //budeme prijímať ICMP hlavičku
-		iov.iov_len = sizeof(icmph); //dĺžka bude veľkosť ICMP hlavičky (obviously)
-
-		msg.msg_name = &target; //tu sa uloží cieľ správy, teda adresa nášho stroja
-		msg.msg_namelen = sizeof(target); //obvious
-		msg.msg_iov = &iov; //opäť tá icmp hlavička
-		msg.msg_iovlen = 1; //počet hlavičiek
-		msg.msg_flags = 0; //žiadne flagy
-		msg.msg_control = buf; //predpokladám že buffer pre control správy
-		msg.msg_controllen = sizeof(buf);//obvious	
+		
 	
 		/* Receiving errors flog is set */
 		while(1){
@@ -167,7 +161,7 @@ int main(int argc, char* argv[]){
 						inet_ntop(AF_INET, &(sin->sin_addr), str, 4082);
 						cout<<str<<endl;
 						if(!strcmp(str, address.c_str())){
-							cout<<"target reached"<< endl;
+							cout<<"storage reached"<< endl;
 							exit(0);
 						}
 						break;
