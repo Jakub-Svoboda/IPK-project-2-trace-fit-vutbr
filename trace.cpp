@@ -104,15 +104,11 @@ int main(int argc, char* argv[]){
 	packet.code = 0;
 	packet.un.echo.id = getpid();
 
-	
-	//packet.checksum=0;
-	
 	int ttl = first_ttl; 		//set the desired first_ttl
 	setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
 	int val=2;
 	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
-	
-	
+
 	//send the message
 	if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
 		fprintf(stderr,"sendto() failed with error code %d\n",errno);
@@ -120,9 +116,6 @@ int main(int argc, char* argv[]){
 	}
 
 	//receive
-	
-	val=2;
-	//setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 	val=1;
 	/* Set the option, so we can receive errors */
 	setsockopt(clientSocket, SOL_IP, IP_RECVERR,(char*)&val, sizeof(val));
@@ -166,18 +159,16 @@ int main(int argc, char* argv[]){
 				if (cmsg->cmsg_level == SOL_IP && cmsg->cmsg_type == IP_RECVERR){
 					 //získame dáta z hlavičky
 					 struct sock_extended_err *e = (struct sock_extended_err*) CMSG_DATA(cmsg);
-
 					 //bude treba niečo podobné aj pre IPv6 (hint: iný flag)
 					 if (e && e->ee_origin == SO_EE_ORIGIN_ICMP) {
-
-					 
 						/* získame adresu - ak to robíte všeobecne tak sockaddr_storage */
-						struct sockaddr_in *sin = (struct sockaddr_in *)(e+1); 
-						cout<<sin->sin_addr.s_addr<<endl;
-						
+						struct sockaddr_in *sin = (struct sockaddr_in *)(e+1); 						
 						char str[4082];
 						inet_ntop(AF_INET, &(sin->sin_addr), str, 4082);
 						cout<<str<<endl;
+						if(!strcmp(str, adress.c_str())){
+							cout<<"target reached"<< endl;
+						}
 						 /*
 						 * v sin máme zdrojovú adresu
 						 * stačí ju už len vypísať viď: inet_ntop alebo getnameinfo
@@ -205,16 +196,7 @@ int main(int argc, char* argv[]){
 						
 			
 		}
-		
-		
-		
-		
+	
 	}	
-		
-		
-	
-	
-	
-	
-	
+
 }
