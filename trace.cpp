@@ -107,10 +107,10 @@ int main(int argc, char* argv[]){
 	
 	//packet.checksum=0;
 	
-	int ttl = 3; /* max = 255 */
+	int ttl = first_ttl; 		//set the desired first_ttl
 	setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
 	int val=2;
-	//setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
+	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 	
 	
 	//send the message
@@ -120,8 +120,7 @@ int main(int argc, char* argv[]){
 	}
 
 	//receive
-	char buf[1000];
-	memset(buf,'\0', 1000);
+	
 
 	val=2;
 	//setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
@@ -137,7 +136,8 @@ int main(int argc, char* argv[]){
 	while(1){
 		//štruktúra pre adresu kompatibilná s IPv4 aj v6
 		struct sockaddr_storage target; 
-		char cbuf[512];
+		char buf[1000];
+		memset(buf,'\0', 1000);
 		struct iovec iov; //io štruktúra
     
 		struct msghdr msg; //prijatá správa - môže obsahovať viac control hlavičiek
@@ -153,8 +153,8 @@ int main(int argc, char* argv[]){
 		msg.msg_iov = &iov; //opäť tá icmp hlavička
 		msg.msg_iovlen = 1; //počet hlavičiek
 		msg.msg_flags = 0; //žiadne flagy
-		msg.msg_control = cbuf; //predpokladám že buffer pre control správy
-		msg.msg_controllen = sizeof(cbuf);//obvious	
+		msg.msg_control = buf; //predpokladám že buffer pre control správy
+		msg.msg_controllen = sizeof(buf);//obvious	
 	
 		/* Receiving errors flog is set */
 		while(1){
