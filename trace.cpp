@@ -165,7 +165,7 @@ int main(int argc, char* argv[]){
 							exit(0);
 						}
 						first_ttl++;
-						cout<<"setting ttl to: "<<first_ttl<<endl;
+						cout<<first_ttl<< " ";
 						setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
 						//send the message
 						if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
