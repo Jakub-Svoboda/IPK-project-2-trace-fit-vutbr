@@ -104,7 +104,7 @@ int main(int argc, char* argv[]){
 	packet.code = 0;
 	packet.un.echo.id = getpid();
 
-	int ttl = first_ttl; 		//set the desired first_ttl
+	int ttl = 30; 		//set the desired first_ttl
 	setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
 	int val=2;
 	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
@@ -168,7 +168,9 @@ int main(int argc, char* argv[]){
 						cout<<str<<endl;
 						if(!strcmp(str, address.c_str())){
 							cout<<"target reached"<< endl;
+							exit(0);
 						}
+						break;
 						
 						 /*
 						 * v sin máme zdrojovú adresu
