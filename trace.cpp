@@ -138,7 +138,7 @@ int main(int argc, char* argv[]){
 	msg.msg_controllen = sizeof(buf);//obvious	
 	
 	
-	for(; first_ttl<=max_ttl; first_ttl++){
+	for(; first_ttl<=max_ttl; ){
 		memset(buf,'\0', 1000);
 		
 	
@@ -164,6 +164,7 @@ int main(int argc, char* argv[]){
 							cout<<"storage reached"<< endl;
 							exit(0);
 						}
+						first_ttl++;
 						cout<<"setting ttl to: "<<first_ttl<<endl;
 						setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
 						//send the message
