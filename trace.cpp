@@ -95,7 +95,7 @@ int main(int argc, char* argv[]){
         fprintf(stderr,"Socket failed to create.\n");
         exit(EXIT_FAILURE);
     }
-		
+	
 	uint32_t slen=sizeof(destinationAddress);
 	
 	struct icmphdr packet;
@@ -140,10 +140,9 @@ int main(int argc, char* argv[]){
 	
 	for(; first_ttl<=max_ttl; ){
 		memset(buf,'\0', 1000);
-		
 	
 		/* Receiving errors flog is set */
-		while(1){
+		
 			int res = recvmsg(clientSocket, &msg, MSG_ERRQUEUE); //prijme správu
 			if (res<0) continue;
 			
@@ -161,7 +160,7 @@ int main(int argc, char* argv[]){
 						inet_ntop(AF_INET, &(sin->sin_addr), str, 4082);
 						cout<<str<<endl;
 						if(!strcmp(str, address.c_str())){
-							cout<<"storage reached"<< endl;
+							cout<<"target reached"<< endl;
 							exit(0);
 						}
 						first_ttl++;
@@ -198,10 +197,7 @@ int main(int argc, char* argv[]){
 					}
 				}          
 			}  
-						
-			
-		}
-	
+
 	}	
 
 }
