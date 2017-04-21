@@ -166,7 +166,7 @@ int main(int argc, char* argv[]){
 						char str[4082];
 						inet_ntop(AF_INET, &(sin->sin_addr), str, 4082);
 						cout<<str<<endl;
-						if(!strcmp(str, adress.c_str())){
+						if(!strcmp(str, address.c_str())){
 							cout<<"target reached"<< endl;
 						}
 						
