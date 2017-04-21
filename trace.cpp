@@ -164,6 +164,12 @@ int main(int argc, char* argv[]){
 							cout<<"storage reached"<< endl;
 							exit(0);
 						}
+						setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
+						//send the message
+						if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
+							fprintf(stderr,"sendto() failed with error code %d\n",errno);
+							exit(-1);
+						}
 						break;
 						
 						 /*
