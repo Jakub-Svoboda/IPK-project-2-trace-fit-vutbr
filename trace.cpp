@@ -119,28 +119,18 @@ int main(int argc, char* argv[]){
 	val=1;
 	/* Set the option, so we can receive errors */
 	setsockopt(clientSocket, SOL_IP, IP_RECVERR,(char*)&val, sizeof(val));
-	int return_status;
-	struct iovec iov;                       /* Data array */
-	struct msghdr msg;                      /* Message header */
-	struct cmsghdr *cmsg;                   /* Control related data */
-	struct sock_extended_err *sock_err;     /* Struct describing the error */ 
-	
+
 	
 	//štruktúra pre adresu kompatibilná s IPv4 aj v6
 	struct sockaddr_storage target; 
 	char buf[1000];
 	
-	
 	while(1){
-		
 		memset(buf,'\0', 1000);
 		struct iovec iov; //io štruktúra
-    
 		struct msghdr msg; //prijatá správa - môže obsahovať viac control hlavičiek
 		struct cmsghdr *cmsg; //konkrétna control hlavička
-
 		struct icmphdr icmph; //ICMP hlavička
-			
 		iov.iov_base = &icmph; //budeme prijímať ICMP hlavičku
 		iov.iov_len = sizeof(icmph); //dĺžka bude veľkosť ICMP hlavičky (obviously)
 
@@ -174,36 +164,16 @@ int main(int argc, char* argv[]){
 							cout<<"target reached"<< endl;
 							exit(0);
 						}
-						break;
-						
-						 /*
-						 * v sin máme zdrojovú adresu
-						 * stačí ju už len vypísať viď: inet_ntop alebo getnameinfo
-						 */
-
-					//	 if (e->ee_type == ...)
-					//	 {
-							 /*
-							 * Overíme si všetky možné návratové správy
-							 * hlavne ICMP_TIME_EXCEEDED and ICMP_DEST_UNREACH
-							 * v prvom prípade inkrementujeme TTL a pokračujeme
-							 * v druhom prípade sme narazili na cieľ
-							 * 
-							 * kódy pre IPv4 nájdete tu
-							 * http://man7.org/linux/man-pages/man7/icmp.7.html
-							 * 
-							 * kódy pre IPv6 sú ODLIŠNÉ!:
-							 * nájdete ich napríklad tu https://tools.ietf.org/html/rfc4443
-							 * strana 4
-							 */
-					//	 }
 					}
 				}          
-			}  
-						
-			
+			} 	
 		}
-	
+		first_ttl++;
+		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
+		//send the message
+		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
+			fprintf(stderr,"sendto() failed with error code %d\n",errno);
+			exit(-1);
+		}
 	}	
-
 }
