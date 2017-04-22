@@ -30,17 +30,17 @@ sockaddr_in getIpv4(struct hostent *server, string address, sockaddr_in * destin
 	return *destinationAddress;
 }
 
-void getIP(void* ptr, string adress){
+struct addrinfo * getIP(string adress){
 	struct addrinfo hints, *res;
 	int errcode;
 	char addrstr[100];
+	void * ptr;
 	
 	memset (&hints, 0, sizeof (hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_flags |= AI_CANONNAME;
-	
-	errcode = getaddrinfo (adress.c_str(), NULL, &hints, &res);
+	errcode = getaddrinfo (adress.c_str(), "33434", &hints, &res);
 	if (errcode != 0){
       perror ("getaddrinfo");
       exit (-1);
@@ -57,8 +57,8 @@ void getIP(void* ptr, string adress){
         }
 	inet_ntop (res->ai_family, ptr, addrstr, 100);
 	printf ("IPv%d address: %s (%s)\n", res->ai_family == PF_INET6 ? 6 : 4, addrstr, res->ai_canonname);
+	return res;
 	
-    
 }
 
 //Check whether the arguments are valid or not and assigns the values to apropriate variables.
@@ -112,16 +112,17 @@ int main(int argc, char* argv[]){
 	struct hostent *server = NULL;	
 	validateArgs(&address,argc,argv, &first_ttl, &max_ttl);
 	struct sockaddr_in destinationAddress; 
-	void * ptr = NULL;
+	struct addrinfo *ptr;
 	if(string::npos!=address.find('.')){				//ipv4
 		//destinationAddress=getIpv4(server, address, &destinationAddress);
-		getIP(ptr, address);
+		ptr=getIP(address);
 	}else if(string::npos!=address.find(':')) {											//ipv6
-		getIP(ptr, address);
+		ptr =getIP(address);
 	}else{
 		cout<<"translation needed"<<endl;
 		exit(1);
 	}
+	cout<<ptr->ai_canonname<<endl;
 	uint32_t clientSocket;
 	//create a socket
 	if ((clientSocket=socket(AF_INET, SOCK_DGRAM, 0)) <=0){
@@ -168,7 +169,7 @@ int main(int argc, char* argv[]){
 		
 		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
 		//send the message
-		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (const sockaddr *) ptr, sizeof(*ptr))) <= 0){
+		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (const sockaddr *) ptr, sizeof(* ptr))) <= 0){
 			fprintf(stderr,"sendto() failed with error code %d\n",errno);
 			exit(-1);
 		}
