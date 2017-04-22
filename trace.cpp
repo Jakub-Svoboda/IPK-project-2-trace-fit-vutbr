@@ -200,9 +200,9 @@ int main(int argc, char* argv[]){
 						exit(0);						//the adress matches, program can exit
 					}
 				}else{
-					struct sockaddr_in * tmpAddress = (struct sockaddr_in *)(error+1); 							//get the address
+					struct sockaddr6_in * tmpAddress = (struct sockaddr6_in *)(error+1); 							//get the address
 					char str[4000];
-					inet_ntop(AF_INET, &(tmpAddress->sin_addr), str, 4000);
+					inet_ntop(AF_INET6, &(tmpAddress->sin6_addr), str, 4000);
 					cout<<first_ttl<<"\t"<< str<< "\t"<< (duration_cast<microseconds>(timeEnd-timeStart).count()) / 1000.0<< " ms"<<endl;															//and print it
 					if(!strcmp(str, address.c_str())){
 						exit(0);						//the adress matches, program can exit
