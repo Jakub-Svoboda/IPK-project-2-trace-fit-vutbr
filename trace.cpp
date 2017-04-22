@@ -156,9 +156,9 @@ int main(int argc, char* argv[]){
 		messageHeader.msg_controllen = sizeof(buf);	
 
 		if(isIt6){
-			setsockopt(socket6, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
+			setsockopt(socket6, IPPROTO_IPV6, IPV6_UNICAST_HOPS, &first_ttl, sizeof(first_ttl));
 		}else{
-			setsockopt(clientSocket, IPPROTO_IPV6, IPV6_UNICAST_HOPS, &first_ttl, sizeof(first_ttl));
+			setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
 		}	
 		
 		//send the message
