@@ -138,7 +138,7 @@ int main(int argc, char* argv[]){
 			fprintf(stderr,"sendto() failed with error code %d\n",errno);
 			exit(-1);
 		}
-		cout<< first_ttl ;
+		cout<< first_ttl<< endl;
 		
 		first_ttl++;
 		memset(buf,'\0', 1000);	//null the receive msg buffer
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]){
 			/* lineárne viazaný zoznam - dá sa to napísať aj krajšie... */
 			for (cmsg = CMSG_FIRSTHDR(&msg);  cmsg; cmsg =CMSG_NXTHDR(&msg, cmsg)) {
 				/* skontrolujeme si pôvod správy - niečo podobné nám bude treba aj pre IPv6 */
-				if (cmsg->cmsg_level == SOL_IP && cmsg->cmsg_type == IP_RECVERR){
+				if (cmsg->cmsg_type == IP_RECVERR && cmsg->cmsg_level == SOL_IP){
 					 //získame dáta z hlavičky
 					 struct sock_extended_err *e = (struct sock_extended_err*) CMSG_DATA(cmsg);
 					 //bude treba niečo podobné aj pre IPv6 (hint: iný flag)
