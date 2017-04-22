@@ -106,18 +106,8 @@ int main(int argc, char* argv[]){
 	packet.code = 0;
 	packet.un.echo.id = getpid();
 
-	int ttl = first_ttl; 		//set the desired first_ttl
-	setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
 	int val=2;
 	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
-
-
-	auto timeStart = steady_clock::now();			//start time measurement
-	//send the message
-	if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
-		fprintf(stderr,"sendto() failed with error code %d\n",errno);
-		exit(-1);
-	}
 
 	//receive
 	val=1;
@@ -142,6 +132,16 @@ int main(int argc, char* argv[]){
 		messageHeader.msg_namelen = sizeof(target); 	
 		messageHeader.msg_control = buf; 				
 		messageHeader.msg_controllen = sizeof(buf);	
+		
+		
+		
+		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
+		//send the message
+		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
+			fprintf(stderr,"sendto() failed with error code %d\n",errno);
+			exit(-1);
+		}
+		auto timeStart = steady_clock::now();			//start time measurement
 	
 		while(1){															//cycles the recvmsg() until something arrives
 			int res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
@@ -166,12 +166,5 @@ int main(int argc, char* argv[]){
 			break;										//breaks the recvmsg() cycle
 		}
 		first_ttl++;									//increments the ttl
-		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
-		//send the message
-		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
-			fprintf(stderr,"sendto() failed with error code %d\n",errno);
-			exit(-1);
-		}
-		timeStart = steady_clock::now();			//start time measurement
 	}	
 }
