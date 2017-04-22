@@ -170,10 +170,12 @@ int main(int argc, char* argv[]){
 				exit(-1);
 			}
 		}else{
+			cout<<"sending 6"<<endl;
 			if ((sendto(socket6, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress6, sizeof(destinationAddress6))) <= 0){
 				fprintf(stderr,"sendto()6 failed with error code %d\n",errno);
 				exit(-1);
 			}
+			cout<<"sent "<< first_ttl<<endl;
 		}
 		
 		auto timeStart = steady_clock::now();			//start time measurement
