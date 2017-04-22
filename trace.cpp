@@ -151,7 +151,7 @@ int main(int argc, char* argv[]){
 		
 		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
 		//send the message
-		while(1){
+	
 		if(!isIt6){
 			if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
 				fprintf(stderr,"sendto()4 failed with error code %d\n",errno);
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]){
 				exit(-1);
 			}
 		}
-		}
+		
 		auto timeStart = steady_clock::now();			//start time measurement
 		while(1){															//cycles the recvmsg() until something arrives
 			int res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
