@@ -104,7 +104,7 @@ int main(int argc, char* argv[]){
 	packet.code = 0;
 	packet.un.echo.id = getpid();
 
-	int ttl = 4; 		//set the desired first_ttl
+	int ttl = first_ttl; 		//set the desired first_ttl
 	setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
 	int val=2;
 	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
@@ -138,10 +138,13 @@ int main(int argc, char* argv[]){
 	msg.msg_controllen = sizeof(buf);//obvious	
 	
 	
-	for(; first_ttl<=max_ttl; ){
-		memset(buf,'\0', 1000);	//null the receive msg buffer
+
 		/* Receiving errors flog is set */
 		while(1){
+			memset(buf,'\0', 1000);	//null the receive msg buffer
+			if(first_ttl > max_ttl){
+				exit(0);
+			}
 			int res = recvmsg(clientSocket, &msg, MSG_ERRQUEUE); //prijme správu
 			if (res<0) continue;
 			
@@ -171,31 +174,9 @@ int main(int argc, char* argv[]){
 							exit(-1);
 						}
 						break;
-						
-						 /*
-						 * v sin máme zdrojovú adresu
-						 * stačí ju už len vypísať viď: inet_ntop alebo getnameinfo
-						 */
-
-					//	 if (e->ee_type == ...)
-					//	 {
-							 /*
-							 * Overíme si všetky možné návratové správy
-							 * hlavne ICMP_TIME_EXCEEDED and ICMP_DEST_UNREACH
-							 * v prvom prípade inkrementujeme TTL a pokračujeme
-							 * v druhom prípade sme narazili na cieľ
-							 * 
-							 * kódy pre IPv4 nájdete tu
-							 * http://man7.org/linux/man-pages/man7/icmp.7.html
-							 * 
-							 * kódy pre IPv6 sú ODLIŠNÉ!:
-							 * nájdete ich napríklad tu https://tools.ietf.org/html/rfc4443
-							 * strana 4
-							 */
-					//	 }
 					}
 				}          
 			}
 		}
-	}	
+		
 }
