@@ -36,7 +36,7 @@ void getIP(void* ptr, string adress){
 	char addrstr[100];
 	
 	memset (&hints, 0, sizeof (hints));
-	hints.ai_family = AF_INET;
+	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_flags |= AI_CANONNAME;
 	
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]){
 		
 		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
 		//send the message
-		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (const sockaddr *)ptr, sizeof(ptr))) <= 0){
+		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (const sockaddr *) ptr, sizeof(*ptr))) <= 0){
 			fprintf(stderr,"sendto() failed with error code %d\n",errno);
 			exit(-1);
 		}
