@@ -142,15 +142,17 @@ int main(int argc, char* argv[]){
 			exit(-1);
 		}
 		auto timeStart = steady_clock::now();			//start time measurement
-		cout<<"recvmsg cycles: "<<endl;
+		cout<<"recvmsg foo: "<<endl;
 		while(1){															//cycles the recvmsg() until something arrives
 			int res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
-			if (res<0) continue;
-			auto timeEnd = steady_clock::now();
-			if((duration_cast<microseconds>(timeEnd-timeStart).count()) > 2000000){			//2 seconds timeout
+			auto timeTmp = steady_clock::now();
+			if((duration_cast<microseconds>(timeTmp-timeStart).count()) > 2000000){			//2 seconds timeout
 				cout<<first_ttl<<"\t"<< "timeout reached" << "\t"<< "*" <<endl;
 				exit(-1);
-			}	
+			}
+			if (res<0) continue;
+			auto timeEnd = steady_clock::now();
+				
 			for (controlMessage = CMSG_FIRSTHDR(&messageHeader);  controlMessage; controlMessage = CMSG_NXTHDR(&messageHeader, controlMessage)) {
 				 struct sock_extended_err *error = (struct sock_extended_err*) CMSG_DATA(controlMessage);		//get the data from the header
 				 if (error && error->ee_origin == SO_EE_ORIGIN_ICMP) {											//error must be ICMP type
