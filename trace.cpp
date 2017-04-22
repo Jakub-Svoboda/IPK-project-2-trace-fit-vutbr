@@ -104,19 +104,8 @@ int main(int argc, char* argv[]){
 	packet.code = 0;
 	packet.un.echo.id = getpid();
 
-	int ttl = first_ttl; 		//set the desired first_ttl
-	setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
-	int val=2;
-	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 
-	//send the message
-	if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
-		fprintf(stderr,"sendto() failed with error code %d\n",errno);
-		exit(-1);
-	}
-
-	//receive
-	val=1;
+	int val=1;
 	/* Set the option, so we can receive errors */
 	setsockopt(clientSocket, SOL_IP, IP_RECVERR,(char*)&val, sizeof(val));	
 	
@@ -139,6 +128,16 @@ int main(int argc, char* argv[]){
 	
 	
 	while(first_ttl<=max_ttl){
+		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
+		val=2;
+		setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
+
+		//send the message
+		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
+			fprintf(stderr,"sendto() failed with error code %d\n",errno);
+			exit(-1);
+		}
+		
 		memset(buf,'\0', 1000);	//null the receive msg buffer
 		/* Receiving errors flog is set */
 		while(1){
