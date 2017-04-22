@@ -27,8 +27,15 @@ sockaddr_in getIpv4(struct hostent *server, string address, sockaddr_in * destin
 	}	
 	destinationAddress->sin_family=AF_INET;
 	destinationAddress->sin_port = htons(PORTNUM);
-	//bcopy(to_string(addressNum).c_str(), (char *)&destinationAddress->sin_addr.s_addr, strlen(to_string(addressNum).c_str()));
 	return *destinationAddress;
+}
+
+sockaddr_in6 getIpv6(struct hostent *server, string address, sockaddr_in6 * destinationAddress6){
+	bzero(destinationAddress6, sizeof(destinationAddress6));		//null the server address
+	inet_pton(AF_INET6, address.c_str(), &(destinationAddress6->sin6_addr));
+	destinationAddress6->sin6_family=AF_INET6;
+	destinationAddress6->sin6_port=htons(PORTNUM);
+	return *destinationAddress6;
 }
 
 //Check whether the arguments are valid or not and assigns the values to apropriate variables.
@@ -82,11 +89,13 @@ int main(int argc, char* argv[]){
 	struct hostent *server = NULL;	
 	validateArgs(&address,argc,argv, &first_ttl, &max_ttl);
 	struct sockaddr_in destinationAddress; 
-	//struct sockaddr_in6 destinationAddress6;
+	struct sockaddr_in6 destinationAddress6;
+	bool isIt6 = false;
 	if(string::npos!=address.find('.')){				//ipv4
 		destinationAddress=getIpv4(server, address, &destinationAddress);
 	}else if(string::npos!=address.find(':')) {											//ipv6
-		cout<<"ipv6"<<endl;
+		destinationAddress6=getIpv6(server,address, &destinationAddress6);
+		isIt6=true;
 	}else{
 		cout<<"translation needed"<<endl;
 		exit(1);
@@ -115,6 +124,11 @@ int main(int argc, char* argv[]){
 
 	struct sockaddr_storage target; 					//compatible with ipv4 and ipv6 //TODO is it really?
 	char buf[1000];
+	int socket6;
+	if ((socket6=socket(AF_INET6, SOCK_DGRAM, 0)) <=0){
+        fprintf(stderr,"Socket failed to create.\n");
+        exit(EXIT_FAILURE);
+    }
 	
 	while(first_ttl<=max_ttl){
 		memset(buf,'\0', 1000);							//null the receive buffer
@@ -137,9 +151,18 @@ int main(int argc, char* argv[]){
 		
 		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
 		//send the message
-		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
-			fprintf(stderr,"sendto() failed with error code %d\n",errno);
-			exit(-1);
+		while(1){
+		if(!isIt6){
+			if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
+				fprintf(stderr,"sendto() failed with error code %d\n",errno);
+				exit(-1);
+			}
+		}else{
+			if ((sendto(socket6, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress6, slen)) <= 0){
+				fprintf(stderr,"sendto() failed with error code %d\n",errno);
+				exit(-1);
+			}
+		}
 		}
 		auto timeStart = steady_clock::now();			//start time measurement
 		while(1){															//cycles the recvmsg() until something arrives
