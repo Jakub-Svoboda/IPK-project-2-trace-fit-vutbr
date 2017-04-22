@@ -128,7 +128,13 @@ int main(int argc, char* argv[]){
 
 	//receive
 	val=1;
-	setsockopt(clientSocket, SOL_IP, IP_RECVERR,(char*)&val, sizeof(val));		//turn on errors
+	if(isIt6){
+		setsockopt(socket6, SOL_IPV6, IPV6_RECVERR,(char*)&val, sizeof(val));		//turn on errors for ipv6
+	}else{
+		setsockopt(clientSocket, SOL_IP, IP_RECVERR,(char*)&val, sizeof(val));		//turn on errors for ipv4
+	}
+		
+	
 
 	struct sockaddr_storage target; 					//compatible with ipv4 and ipv6 //TODO is it really?
 	char buf[1000];
