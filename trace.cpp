@@ -140,10 +140,7 @@ int main(int argc, char* argv[]){
 	
 	for(; first_ttl<=max_ttl; ){
 		memset(buf,'\0', 1000);
-		
-	
-		/* Receiving errors flog is set */
-		while(1){
+
 			int res = recvmsg(clientSocket, &msg, MSG_ERRQUEUE); //prijme správu
 			if (res<0) continue;
 			
@@ -198,9 +195,6 @@ int main(int argc, char* argv[]){
 					}
 				}          
 			}  
-						
-			
-		}
 	
 	}	
 
