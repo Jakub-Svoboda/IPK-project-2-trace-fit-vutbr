@@ -162,7 +162,7 @@ int main(int argc, char* argv[]){
 		}	
 		
 		//send the message
-	
+		cout<<"sending"<<endl;
 		if(!isIt6){
 			if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
 				fprintf(stderr,"sendto()4 failed with error code %d\n",errno);
@@ -174,13 +174,13 @@ int main(int argc, char* argv[]){
 				exit(-1);
 			}
 		}
-		
+		cout<<"sendt"<<endl;
 		auto timeStart = steady_clock::now();			//start time measurement
 		while(1){															//cycles the recvmsg() until something arrives
 			int res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
 			auto timeTmp = steady_clock::now();
 			if((duration_cast<microseconds>(timeTmp-timeStart).count()) > 2000000){			//2 seconds timeout
-				cout<<first_ttl<<"\t"<< "timeout reached" << "\t"<< "*" <<endl;
+				cout<<first_ttl<<"\t"<< "*" << "\t"<< "*" <<endl;
 				exit(-1);
 			}
 			if (res<0) continue;
