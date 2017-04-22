@@ -160,7 +160,7 @@ int main(int argc, char* argv[]){
 						struct sockaddr_in *sin = (struct sockaddr_in *)(e+1); 						
 						char str[4082];
 						inet_ntop(AF_INET, &(sin->sin_addr), str, 4082);
-						cout<<str<<endl;
+						cout<<first_ttl<<"\t"<< str<<endl;
 						if(!strcmp(str, address.c_str())){
 							cout<<"target reached"<< endl;
 							exit(0);
@@ -173,7 +173,6 @@ int main(int argc, char* argv[]){
 		first_ttl++;
 		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
 		//send the message
-		cout <<first_ttl<<"\t";
 		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
 			fprintf(stderr,"sendto() failed with error code %d\n",errno);
 			exit(-1);
