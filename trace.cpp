@@ -36,7 +36,6 @@ void getIpv6(struct hostent *server, string address, sockaddr_in6 * destinationA
 	destinationAddress6->sin6_family=AF_INET6;
 	destinationAddress6->sin6_flowinfo=0;
 	destinationAddress6->sin6_port=htons(PORTNUM);
-	
 }
 
 //Check whether the arguments are valid or not and assigns the values to apropriate variables.
@@ -101,6 +100,12 @@ int main(int argc, char* argv[]){
 		cout<<"translation needed"<<endl;
 		exit(1);
 	}
+	char astring[INET6_ADDRSTRLEN];
+	// sockaddr_in6 to IPv6 string.
+	inet_ntop(AF_INET6, &(destinationAddress6.sin6_addr), astring, INET6_ADDRSTRLEN);
+	printf("%s\n", astring);
+	
+	
 	uint32_t clientSocket, socket6;
 	//create a socket
 	if(!isIt6){
@@ -180,7 +185,7 @@ int main(int argc, char* argv[]){
 			int res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
 			auto timeTmp = steady_clock::now();
 			if((duration_cast<microseconds>(timeTmp-timeStart).count()) > 2000000){			//2 seconds timeout
-				cout<<first_ttl<<"\t"<< "*" << "\t\t"<< "*" <<endl;
+				cout<<first_ttl<<"\t"<< "timeou reached" << "\t"<< "*" <<endl;
 				break;
 			}
 			if (res<0) continue;
