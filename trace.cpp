@@ -127,7 +127,8 @@ int main(int argc, char* argv[]){
 	msg.msg_controllen = sizeof(buf);//obvious	
 	
 	
-	while(first_ttl<=max_ttl){
+	while(first_ttl<max_ttl){
+		first_ttl++;
 		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
 		val=2;
 		setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
@@ -161,18 +162,10 @@ int main(int argc, char* argv[]){
 							cout<<"target reached"<< endl;
 							exit(0);
 						}
-						first_ttl++;
-						cout<<first_ttl<< " ";
-						setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
-						//send the message
-						if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
-							fprintf(stderr,"sendto() failed with error code %d\n",errno);
-							exit(-1);
-						}
-						break;
 					}
 				}          
 			}
+			break;
 		}
 	}	
 }
