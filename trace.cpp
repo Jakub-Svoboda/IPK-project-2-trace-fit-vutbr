@@ -157,8 +157,9 @@ int main(int argc, char* argv[]){
 					 if (e && e->ee_origin == SO_EE_ORIGIN_ICMP) {
 						/* získame adresu - ak to robíte všeobecne tak sockaddr_storage */
 						struct sockaddr_in *sin = (struct sockaddr_in *)(e+1); 						
-						char str[4082];
-						inet_ntop(AF_INET, &(sin->sin_addr), str, 4082);
+						char str[4000];
+						memset(str,'\0', 4000);
+						inet_ntop(AF_INET, &(sin->sin_addr), str, 4000);
 						cout<<str<<endl;
 						if(!strcmp(str, address.c_str())){
 							cout<<"target reached"<< endl;
