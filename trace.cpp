@@ -175,7 +175,7 @@ int main(int argc, char* argv[]){
 		cout<<"sent"<<first_ttl<<endl;
 		auto timeStart = steady_clock::now();			//start time measurement
 		while(1){															//cycles the recvmsg() until something arrives
-			int res;
+			int res = -1;
 			if(!isIt6){
 				res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
 			}else{
