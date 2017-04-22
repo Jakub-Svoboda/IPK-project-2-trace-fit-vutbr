@@ -117,40 +117,34 @@ int main(int argc, char* argv[]){
 
 	//receive
 	val=1;
-	/* Set the option, so we can receive errors */
-	setsockopt(clientSocket, SOL_IP, IP_RECVERR,(char*)&val, sizeof(val));
+	setsockopt(clientSocket, SOL_IP, IP_RECVERR,(char*)&val, sizeof(val));		//turn on errors
 
-	
-	//štruktúra pre adresu kompatibilná s IPv4 aj v6
-	struct sockaddr_storage target; 
+	struct sockaddr_storage target; 					//compatible with ipv4 and ipv6 //TODO is it really?
 	char buf[1000];
 	
 	while(first_ttl<=max_ttl){
 		memset(buf,'\0', 1000);							//null the receive buffer
-		struct msghdr messageHeader; 								//prijatá správa - môže obsahovať viac control hlavičiek
-		struct cmsghdr *controlMessage; 							//konkrétna control hlavička
+		struct msghdr messageHeader; 					//reveived message
+		struct cmsghdr *controlMessage; 				//control header
 		struct icmphdr icmph; 							//received ICMP header
 		
 		struct iovec inputOutputVector; 				//iovec structure
 		inputOutputVector.iov_base = &icmph; 			//set base to the reveived ICMP header
 		inputOutputVector.iov_len = sizeof(icmph); 		
 
-		messageHeader.msg_iov = &inputOutputVector; 	//opäť tá icmp hlavička
-		messageHeader.msg_iovlen = 1; 					//počet hlavičiek
-		messageHeader.msg_name = &target; 				//tu sa uloží cieľ správy, teda adresa nášho stroja
+		messageHeader.msg_iov = &inputOutputVector; 	
+		messageHeader.msg_iovlen = 1; 					//number of headers?
+		messageHeader.msg_name = &target; 				
 		messageHeader.msg_namelen = sizeof(target); 	
-		messageHeader.msg_control = buf; 				//predpokladám že buffer pre control správy
+		messageHeader.msg_control = buf; 				
 		messageHeader.msg_controllen = sizeof(buf);	
 	
-		/* Receiving errors flog is set */
-		while(1){
-			int res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); //prijme správu
+		while(1){															//cycles the recvmsg() until something arrives
+			int res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
 			if (res<0) continue;
-			
-			/* lineárne viazaný zoznam - dá sa to napísať aj krajšie... */
-			for (controlMessage = CMSG_FIRSTHDR(&messageHeader);  controlMessage; controlMessage =CMSG_NXTHDR(&messageHeader, controlMessage)) {
-				/* skontrolujeme si pôvod správy - niečo podobné nám bude treba aj pre IPv6 */
-				if (controlMessage->cmsg_level == SOL_IP && controlMessage->cmsg_type == IP_RECVERR){
+															
+			for (controlMessage = CMSG_FIRSTHDR(&messageHeader);  controlMessage; controlMessage = CMSG_NXTHDR(&messageHeader, controlMessage)) {
+				
 					 //získame dáta z hlavičky
 					 struct sock_extended_err *e = (struct sock_extended_err*) CMSG_DATA(controlMessage);
 					 //bude treba niečo podobné aj pre IPv6 (hint: iný flag)
@@ -165,11 +159,11 @@ int main(int argc, char* argv[]){
 							exit(0);
 						}
 					}
-				}          
+				          
 			}
-			break;	
+			break;										//breaks the recvmsg() cycle
 		}
-		first_ttl++;
+		first_ttl++;									//increments the ttl
 		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
 		//send the message
 		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
