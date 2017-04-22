@@ -18,7 +18,7 @@ using namespace std;
 using namespace std::chrono ;
 
 sockaddr_in getIpv4(struct hostent *server, string address, sockaddr_in * destinationAddress){
-	bzero(destinationAddress, sizeof(destinationAddress));		//null the server address
+	bzero(destinationAddress, sizeof(* destinationAddress));		//null the server address
 	uint32_t addressNum = inet_addr(address.c_str()); 
 	if(addressNum == INADDR_NONE){
 		bcopy((char *) server->h_addr, (char *)&destinationAddress->sin_addr.s_addr, server->h_length);
@@ -31,7 +31,7 @@ sockaddr_in getIpv4(struct hostent *server, string address, sockaddr_in * destin
 }
 
 void getIpv6(struct hostent *server, string address, sockaddr_in6 * destinationAddress6){
-	bzero(destinationAddress6, sizeof(destinationAddress6));		//null the server address
+	bzero(destinationAddress6, sizeof(* destinationAddress6));		//null the server address
 	inet_pton(AF_INET6, address.c_str(), &(destinationAddress6->sin6_addr));
 	destinationAddress6->sin6_family=AF_INET6;
 	destinationAddress6->sin6_port=htons(PORTNUM);
