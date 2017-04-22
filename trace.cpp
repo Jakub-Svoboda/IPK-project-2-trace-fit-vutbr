@@ -187,10 +187,10 @@ int main(int argc, char* argv[]){
 				break;
 			}
 			if (res<0) continue;
-			cout<<res<<endl;
 			auto timeEnd = steady_clock::now();
 				
 			for (controlMessage = CMSG_FIRSTHDR(&messageHeader);  controlMessage; controlMessage = CMSG_NXTHDR(&messageHeader, controlMessage)) {
+				cout<<"im in"<<endl;
 				 struct sock_extended_err *error = (struct sock_extended_err*) CMSG_DATA(controlMessage);		//get the data from the header
 				 if (error && error->ee_origin == SO_EE_ORIGIN_ICMP) {											//error must be ICMP type
 					struct sockaddr_in * tmpAddress = (struct sockaddr_in *)(error+1); 							//get the address
