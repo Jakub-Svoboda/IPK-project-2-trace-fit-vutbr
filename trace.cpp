@@ -181,7 +181,7 @@ int main(int argc, char* argv[]){
 			auto timeTmp = steady_clock::now();
 			if((duration_cast<microseconds>(timeTmp-timeStart).count()) > 2000000){			//2 seconds timeout
 				cout<<first_ttl<<"\t"<< "*" << "\t\t"<< "*" <<endl;
-				exit(-1);
+				break;
 			}
 			if (res<0) continue;
 			auto timeEnd = steady_clock::now();
