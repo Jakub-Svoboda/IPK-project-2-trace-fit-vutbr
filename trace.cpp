@@ -36,7 +36,7 @@ void getIP(void* ptr, string adress){
 	char addrstr[100];
 	
 	memset (&hints, 0, sizeof (hints));
-	hints.ai_family = PF_UNSPEC;
+	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_flags |= AI_CANONNAME;
 	
