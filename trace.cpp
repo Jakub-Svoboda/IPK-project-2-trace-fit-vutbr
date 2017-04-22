@@ -142,12 +142,22 @@ int main(int argc, char* argv[]){
 		messageHeader.msg_namelen = sizeof(target); 	
 		messageHeader.msg_control = buf; 				
 		messageHeader.msg_controllen = sizeof(buf);	
+		
+		
+		
+		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
+		//send the message
+		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
+			fprintf(stderr,"sendto() failed with error code %d\n",errno);
+			exit(-1);
+		}
+		timeStart = steady_clock::now();			//start time measurement
 	
 		while(1){															//cycles the recvmsg() until something arrives
 			int res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
 			if (res<0) continue;
 			auto timeEnd = steady_clock::now();
-			if( (duration_cast<microseconds>(timeEnd-timeStart).count()) > 20){			//2 seconds timeout
+			if( (duration_cast<microseconds>(timeEnd-timeStart).count()) > 2000000){			//2 seconds timeout
 				cout<<first_ttl<<"\t"<< "timeout reached" << "\t"<< "*" <<endl;
 				exit(-1);
 			}	
@@ -166,12 +176,5 @@ int main(int argc, char* argv[]){
 			break;										//breaks the recvmsg() cycle
 		}
 		first_ttl++;									//increments the ttl
-		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
-		//send the message
-		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
-			fprintf(stderr,"sendto() failed with error code %d\n",errno);
-			exit(-1);
-		}
-		timeStart = steady_clock::now();			//start time measurement
 	}	
 }
