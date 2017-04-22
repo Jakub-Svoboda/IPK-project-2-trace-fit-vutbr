@@ -158,7 +158,7 @@ int main(int argc, char* argv[]){
 				exit(-1);
 			}
 		}else{
-			if ((sendto(socket6, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress6, slen)) <= 0){
+			if ((sendto(socket6, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress6, sizeof(socket6))) <= 0){
 				fprintf(stderr,"sendto()6 failed with error code %d\n",errno);
 				exit(-1);
 			}
