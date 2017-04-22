@@ -11,9 +11,11 @@
 #include <netinet/ip_icmp.h>
 #include <pthread.h>
 #include <linux/errqueue.h>
+#include <chrono> 
 
 #define PORTNUM 57588
 using namespace std;
+using namespace std::chrono ;
 
 sockaddr_in getIpv4(struct hostent *server, string address, sockaddr_in * destinationAddress){
 	bzero(destinationAddress, sizeof(destinationAddress));		//null the server address
@@ -109,6 +111,8 @@ int main(int argc, char* argv[]){
 	int val=2;
 	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 
+
+	auto timeStart = steady_clock::now();			//start time measurement
 	//send the message
 	if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
 		fprintf(stderr,"sendto() failed with error code %d\n",errno);
@@ -142,7 +146,8 @@ int main(int argc, char* argv[]){
 		while(1){															//cycles the recvmsg() until something arrives
 			int res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
 			if (res<0) continue;
-															
+			auto timeEnd = steady_clock::now();	
+			std::cout << "that took " << duration_cast<milliseconds>(timeEnd-timeStart).count()<< " milliseconds\n" ;			
 			for (controlMessage = CMSG_FIRSTHDR(&messageHeader);  controlMessage; controlMessage = CMSG_NXTHDR(&messageHeader, controlMessage)) {
 				 struct sock_extended_err *error = (struct sock_extended_err*) CMSG_DATA(controlMessage);		//get the data from the header
 				 if (error && error->ee_origin == SO_EE_ORIGIN_ICMP) {											//error must be ICMP type
@@ -164,5 +169,6 @@ int main(int argc, char* argv[]){
 			fprintf(stderr,"sendto() failed with error code %d\n",errno);
 			exit(-1);
 		}
+		timeStart = steady_clock::now();			//start time measurement
 	}	
 }
