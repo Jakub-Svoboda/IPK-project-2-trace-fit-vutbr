@@ -135,13 +135,12 @@ int main(int argc, char* argv[]){
 		inputOutputVector.iov_base = &icmph; 			//set base to the reveived ICMP header
 		inputOutputVector.iov_len = sizeof(icmph); 		
 
-		messageHeader.msg_name = &target; //tu sa uloží cieľ správy, teda adresa nášho stroja
-		messageHeader.msg_namelen = sizeof(target); //obvious
-		messageHeader.msg_iov = &inputOutputVector; //opäť tá icmp hlavička
-		messageHeader.msg_iovlen = 1; //počet hlavičiek
-		messageHeader.msg_flags = 0; //žiadne flagy
-		messageHeader.msg_control = buf; //predpokladám že buffer pre control správy
-		messageHeader.msg_controllen = sizeof(buf);//obvious	
+		messageHeader.msg_iov = &inputOutputVector; 	//opäť tá icmp hlavička
+		messageHeader.msg_iovlen = 1; 					//počet hlavičiek
+		messageHeader.msg_name = &target; 				//tu sa uloží cieľ správy, teda adresa nášho stroja
+		messageHeader.msg_namelen = sizeof(target); 	
+		messageHeader.msg_control = buf; 				//predpokladám že buffer pre control správy
+		messageHeader.msg_controllen = sizeof(buf);	
 	
 		/* Receiving errors flog is set */
 		while(1){
