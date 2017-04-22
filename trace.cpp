@@ -154,12 +154,12 @@ int main(int argc, char* argv[]){
 		while(1){
 		if(!isIt6){
 			if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
-				fprintf(stderr,"sendto() failed with error code %d\n",errno);
+				fprintf(stderr,"sendto()4 failed with error code %d\n",errno);
 				exit(-1);
 			}
 		}else{
 			if ((sendto(socket6, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress6, slen)) <= 0){
-				fprintf(stderr,"sendto() failed with error code %d\n",errno);
+				fprintf(stderr,"sendto()6 failed with error code %d\n",errno);
 				exit(-1);
 			}
 		}
