@@ -35,6 +35,7 @@ void getIpv6(struct hostent *server, string address, sockaddr_in6 * destinationA
 	inet_pton(AF_INET6, address.c_str(), &(destinationAddress6->sin6_addr));
 	destinationAddress6->sin6_family=AF_INET6;
 	destinationAddress6->sin6_flowinfo=0;
+	destinationAddress6->sin6_addr = in6addr_any;
 	destinationAddress6->sin6_port=htons(PORTNUM);
 	
 }
@@ -101,13 +102,19 @@ int main(int argc, char* argv[]){
 		cout<<"translation needed"<<endl;
 		exit(1);
 	}
-	uint32_t clientSocket;
+	uint32_t clientSocket, socket6;
 	//create a socket
-	if ((clientSocket=socket(AF_INET, SOCK_DGRAM, 0)) <=0){
-        fprintf(stderr,"Socket failed to create.\n");
-        exit(EXIT_FAILURE);
-    }
-		
+	if(!isIt6){
+		if ((clientSocket=socket(AF_INET, SOCK_DGRAM, 0)) <=0){
+			fprintf(stderr,"Socket failed to create.\n");
+			exit(EXIT_FAILURE);
+		}
+	}else{
+		if ((socket6=socket(AF_INET6, SOCK_DGRAM, 0)) <=0){
+			fprintf(stderr,"Socket failed to create.\n");
+			exit(EXIT_FAILURE);
+		}
+	}	
 	uint32_t slen=sizeof(destinationAddress);
 	
 	struct icmphdr packet;
@@ -125,11 +132,8 @@ int main(int argc, char* argv[]){
 
 	struct sockaddr_storage target; 					//compatible with ipv4 and ipv6 //TODO is it really?
 	char buf[1000];
-	int socket6;
-	if ((socket6=socket(AF_INET6, SOCK_DGRAM, 0)) <=0){
-        fprintf(stderr,"Socket failed to create.\n");
-        exit(EXIT_FAILURE);
-    }
+	
+
 	
 	while(first_ttl<=max_ttl){
 		memset(buf,'\0', 1000);							//null the receive buffer
@@ -147,9 +151,7 @@ int main(int argc, char* argv[]){
 		messageHeader.msg_namelen = sizeof(target); 	
 		messageHeader.msg_control = buf; 				
 		messageHeader.msg_controllen = sizeof(buf);	
-		
-		
-		
+
 		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
 		//send the message
 	
