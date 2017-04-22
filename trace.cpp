@@ -138,6 +138,7 @@ int main(int argc, char* argv[]){
 			fprintf(stderr,"sendto() failed with error code %d\n",errno);
 			exit(-1);
 		}
+		cout<< first_ttl ;
 		
 		memset(buf,'\0', 1000);	//null the receive msg buffer
 		/* Receiving errors flog is set */
