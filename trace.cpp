@@ -128,7 +128,7 @@ int main(int argc, char* argv[]){
 	
 	
 	while(first_ttl<max_ttl){
-		first_ttl++;
+		
 		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
 		val=2;
 		setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
@@ -140,6 +140,7 @@ int main(int argc, char* argv[]){
 		}
 		cout<< first_ttl ;
 		
+		first_ttl++;
 		memset(buf,'\0', 1000);	//null the receive msg buffer
 		/* Receiving errors flog is set */
 		while(1){
