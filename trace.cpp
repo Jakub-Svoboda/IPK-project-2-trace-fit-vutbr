@@ -35,7 +35,6 @@ void getIpv6(struct hostent *server, string address, sockaddr_in6 * destinationA
 	inet_pton(AF_INET6, address.c_str(), &(destinationAddress6->sin6_addr));
 	destinationAddress6->sin6_family=AF_INET6;
 	destinationAddress6->sin6_flowinfo=0;
-	destinationAddress6->sin6_len = sizeof(struct in6_addr);
 	destinationAddress6->sin6_port=htons(PORTNUM);
 	
 }
