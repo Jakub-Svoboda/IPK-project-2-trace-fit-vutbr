@@ -144,22 +144,16 @@ int main(int argc, char* argv[]){
 			if (res<0) continue;
 															
 			for (controlMessage = CMSG_FIRSTHDR(&messageHeader);  controlMessage; controlMessage = CMSG_NXTHDR(&messageHeader, controlMessage)) {
-				
-					 //získame dáta z hlavičky
-					 struct sock_extended_err *e = (struct sock_extended_err*) CMSG_DATA(controlMessage);
-					 //bude treba niečo podobné aj pre IPv6 (hint: iný flag)
-					 if (e && e->ee_origin == SO_EE_ORIGIN_ICMP) {
-						/* získame adresu - ak to robíte všeobecne tak sockaddr_storage */
-						struct sockaddr_in *sin = (struct sockaddr_in *)(e+1); 						
-						char str[4082];
-						inet_ntop(AF_INET, &(sin->sin_addr), str, 4082);
-						cout<<first_ttl<<"\t"<< str<<endl;
-						if(!strcmp(str, address.c_str())){
-							cout<<"target reached"<< endl;
-							exit(0);
-						}
+				 struct sock_extended_err *error = (struct sock_extended_err*) CMSG_DATA(controlMessage);		//get the data from the header
+				 if (error && error->ee_origin == SO_EE_ORIGIN_ICMP) {											//error must be ICMP type
+					struct sockaddr_in * tmpAddress = (struct sockaddr_in *)(error+1); 							//get the address
+					char str[4000];
+					inet_ntop(AF_INET, &(tmpAddress->sin_addr), str, 4000);
+					cout<<first_ttl<<"\t"<< str<<endl;															//and print it
+					if(!strcmp(str, address.c_str())){
+						exit(0);						//the adress matches, program can exit
 					}
-				          
+				}          
 			}
 			break;										//breaks the recvmsg() cycle
 		}
