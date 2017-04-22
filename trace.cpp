@@ -132,9 +132,7 @@ int main(int argc, char* argv[]){
 
 	struct sockaddr_storage target; 					//compatible with ipv4 and ipv6 //TODO is it really?
 	char buf[1000];
-	
 
-	
 	while(first_ttl<=max_ttl){
 		memset(buf,'\0', 1000);							//null the receive buffer
 		struct msghdr messageHeader; 					//reveived message
@@ -161,7 +159,7 @@ int main(int argc, char* argv[]){
 				exit(-1);
 			}
 		}else{
-			if ((sendto(socket6, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress6, sizeof(socket6))) <= 0){
+			if ((sendto(socket6, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress6, sizeof(destinationAddress6))) <= 0){
 				fprintf(stderr,"sendto()6 failed with error code %d\n",errno);
 				exit(-1);
 			}
