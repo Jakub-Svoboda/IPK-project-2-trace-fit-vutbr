@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include <linux/errqueue.h>
 
-#define PORTNUM 57588
+#define PORTNUM 33434
 using namespace std;
 
 sockaddr_in getIpv4(struct hostent *server, string address, sockaddr_in * destinationAddress){
