@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include <linux/errqueue.h>
 
-#define PORTNUM 33434
+#define PORTNUM 57588
 using namespace std;
 
 sockaddr_in getIpv4(struct hostent *server, string address, sockaddr_in * destinationAddress){
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]){
         fprintf(stderr,"Socket failed to create.\n");
         exit(EXIT_FAILURE);
     }
-	
+		
 	uint32_t slen=sizeof(destinationAddress);
 	
 	struct icmphdr packet;
@@ -104,44 +104,54 @@ int main(int argc, char* argv[]){
 	packet.code = 0;
 	packet.un.echo.id = getpid();
 
+	int ttl = first_ttl; 		//set the desired first_ttl
+	setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
+	int val=2;
+	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 
-	int val=1;
+	//send the message
+	if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
+		fprintf(stderr,"sendto() failed with error code %d\n",errno);
+		exit(-1);
+	}
+
+	//receive
+	val=1;
 	/* Set the option, so we can receive errors */
-	setsockopt(clientSocket, SOL_IP, IP_RECVERR,(char*)&val, sizeof(val));	
+	setsockopt(clientSocket, SOL_IP, IP_RECVERR,(char*)&val, sizeof(val));
+	int return_status;
+	struct iovec iov;                       /* Data array */
+	struct msghdr msg;                      /* Message header */
+	struct cmsghdr *cmsg;                   /* Control related data */
+	struct sock_extended_err *sock_err;     /* Struct describing the error */ 
 	
-	struct sockaddr_storage storage; //štruktúra pre adresu kompatibilná s IPv4 aj v6
+	
+	//štruktúra pre adresu kompatibilná s IPv4 aj v6
+	struct sockaddr_storage target; 
 	char buf[1000];
-	struct iovec iov; //io štruktúra
-    struct msghdr msg; //prijatá správa - môže obsahovať viac control hlavičiek
-	struct cmsghdr *cmsg; //konkrétna control hlavička
-	struct icmphdr icmph; //ICMP hlavička
-	iov.iov_base = &icmph; //budeme prijímať ICMP hlavičku
-	iov.iov_len = sizeof(icmph); //dĺžka bude veľkosť ICMP hlavičky (obviously)
-
-	msg.msg_name = &storage; //tu sa uloží cieľ správy, teda adresa nášho stroja
-	msg.msg_namelen = sizeof(storage); //obvious
-	msg.msg_iov = &iov; //opäť tá icmp hlavička
-	msg.msg_iovlen = 1; //počet hlavičiek
-	msg.msg_flags = 0; //žiadne flagy
-	msg.msg_control = buf; //predpokladám že buffer pre control správy
-	msg.msg_controllen = sizeof(buf);//obvious	
 	
 	
-	while(first_ttl<max_ttl){
+	while(1){
 		
-		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
-		val=2;
-		setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
+		memset(buf,'\0', 1000);
+		struct iovec iov; //io štruktúra
+    
+		struct msghdr msg; //prijatá správa - môže obsahovať viac control hlavičiek
+		struct cmsghdr *cmsg; //konkrétna control hlavička
 
-		//send the message
-		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
-			fprintf(stderr,"sendto() failed with error code %d\n",errno);
-			exit(-1);
-		}
-		cout<< first_ttl<< endl;
-		
-		first_ttl++;
-		memset(buf,'\0', 1000);	//null the receive msg buffer
+		struct icmphdr icmph; //ICMP hlavička
+			
+		iov.iov_base = &icmph; //budeme prijímať ICMP hlavičku
+		iov.iov_len = sizeof(icmph); //dĺžka bude veľkosť ICMP hlavičky (obviously)
+
+		msg.msg_name = &target; //tu sa uloží cieľ správy, teda adresa nášho stroja
+		msg.msg_namelen = sizeof(target); //obvious
+		msg.msg_iov = &iov; //opäť tá icmp hlavička
+		msg.msg_iovlen = 1; //počet hlavičiek
+		msg.msg_flags = 0; //žiadne flagy
+		msg.msg_control = buf; //predpokladám že buffer pre control správy
+		msg.msg_controllen = sizeof(buf);//obvious	
+	
 		/* Receiving errors flog is set */
 		while(1){
 			int res = recvmsg(clientSocket, &msg, MSG_ERRQUEUE); //prijme správu
@@ -150,25 +160,50 @@ int main(int argc, char* argv[]){
 			/* lineárne viazaný zoznam - dá sa to napísať aj krajšie... */
 			for (cmsg = CMSG_FIRSTHDR(&msg);  cmsg; cmsg =CMSG_NXTHDR(&msg, cmsg)) {
 				/* skontrolujeme si pôvod správy - niečo podobné nám bude treba aj pre IPv6 */
-				if (cmsg->cmsg_type == IP_RECVERR && cmsg->cmsg_level == SOL_IP){
+				if (cmsg->cmsg_level == SOL_IP && cmsg->cmsg_type == IP_RECVERR){
 					 //získame dáta z hlavičky
 					 struct sock_extended_err *e = (struct sock_extended_err*) CMSG_DATA(cmsg);
 					 //bude treba niečo podobné aj pre IPv6 (hint: iný flag)
 					 if (e && e->ee_origin == SO_EE_ORIGIN_ICMP) {
 						/* získame adresu - ak to robíte všeobecne tak sockaddr_storage */
 						struct sockaddr_in *sin = (struct sockaddr_in *)(e+1); 						
-						char str[4000];
-						memset(str,'\0', 4000);
-						inet_ntop(AF_INET, &(sin->sin_addr), str, 4000);
+						char str[4082];
+						inet_ntop(AF_INET, &(sin->sin_addr), str, 4082);
 						cout<<str<<endl;
 						if(!strcmp(str, address.c_str())){
 							cout<<"target reached"<< endl;
 							exit(0);
 						}
+						break;
+						
+						 /*
+						 * v sin máme zdrojovú adresu
+						 * stačí ju už len vypísať viď: inet_ntop alebo getnameinfo
+						 */
+
+					//	 if (e->ee_type == ...)
+					//	 {
+							 /*
+							 * Overíme si všetky možné návratové správy
+							 * hlavne ICMP_TIME_EXCEEDED and ICMP_DEST_UNREACH
+							 * v prvom prípade inkrementujeme TTL a pokračujeme
+							 * v druhom prípade sme narazili na cieľ
+							 * 
+							 * kódy pre IPv4 nájdete tu
+							 * http://man7.org/linux/man-pages/man7/icmp.7.html
+							 * 
+							 * kódy pre IPv6 sú ODLIŠNÉ!:
+							 * nájdete ich napríklad tu https://tools.ietf.org/html/rfc4443
+							 * strana 4
+							 */
+					//	 }
 					}
 				}          
-			}
-			break;
+			}  
+						
+			
 		}
+	
 	}	
+
 }
