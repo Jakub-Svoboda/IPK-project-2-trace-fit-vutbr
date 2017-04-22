@@ -127,16 +127,19 @@ int main(int argc, char* argv[]){
 	
 	while(first_ttl<=max_ttl){
 		memset(buf,'\0', 1000);
-		struct iovec iov; //io štruktúra
 		struct msghdr msg; //prijatá správa - môže obsahovať viac control hlavičiek
 		struct cmsghdr *cmsg; //konkrétna control hlavička
 		struct icmphdr icmph; //ICMP hlavička
-		iov.iov_base = &icmph; //budeme prijímať ICMP hlavičku
-		iov.iov_len = sizeof(icmph); //dĺžka bude veľkosť ICMP hlavičky (obviously)
-
-		msg.msg_name = &target; //tu sa uloží cieľ správy, teda adresa nášho stroja
+		
+		struct iovec inputOutputVector; //io štruktúra
+		inputOutputVector.iov_base = &icmph; //budeme prijímať ICMP hlavičku
+		inputOutputVector.iov_len = sizeof(icmph); //dĺžka bude veľkosť ICMP hlavičky (obviously)
+		
+		
+		
+				msg.msg_name = &target; //tu sa uloží cieľ správy, teda adresa nášho stroja
 		msg.msg_namelen = sizeof(target); //obvious
-		msg.msg_iov = &iov; //opäť tá icmp hlavička
+		msg.msg_iov = &inputOutputVector; //opäť tá icmp hlavička
 		msg.msg_iovlen = 1; //počet hlavičiek
 		msg.msg_flags = 0; //žiadne flagy
 		msg.msg_control = buf; //predpokladám že buffer pre control správy
