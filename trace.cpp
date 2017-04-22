@@ -166,7 +166,8 @@ int main(int argc, char* argv[]){
 						}
 					}
 				}          
-			} 	
+			}
+			break;	
 		}
 		first_ttl++;
 		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
