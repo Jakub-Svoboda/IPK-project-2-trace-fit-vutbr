@@ -171,6 +171,7 @@ int main(int argc, char* argv[]){
 		first_ttl++;
 		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
 		//send the message
+		cout <<"sending with ttl: " <<first_ttl<<endl;
 		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
 			fprintf(stderr,"sendto() failed with error code %d\n",errno);
 			exit(-1);
