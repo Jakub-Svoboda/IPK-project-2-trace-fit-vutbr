@@ -125,7 +125,7 @@ int main(int argc, char* argv[]){
 	struct sockaddr_storage target; 
 	char buf[1000];
 	
-	while(1){
+	while(first_ttl<=max_ttl){
 		memset(buf,'\0', 1000);
 		struct iovec iov; //io štruktúra
 		struct msghdr msg; //prijatá správa - môže obsahovať viac control hlavičiek
