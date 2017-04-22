@@ -182,7 +182,12 @@ int main(int argc, char* argv[]){
 		cout<<"sent"<<endl;
 		auto timeStart = steady_clock::now();			//start time measurement
 		while(1){															//cycles the recvmsg() until something arrives
-			int res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
+			int res;
+			if(!isIt6){
+				res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
+			}else{
+				res = recvmsg(socket6, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
+			}
 			auto timeTmp = steady_clock::now();
 			if((duration_cast<microseconds>(timeTmp-timeStart).count()) > 2000000){			//2 seconds timeout
 				cout<<first_ttl<<"\t"<< "timeou reached" << "\t"<< "*" <<endl;
