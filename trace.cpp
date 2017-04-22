@@ -30,12 +30,12 @@ sockaddr_in getIpv4(struct hostent *server, string address, sockaddr_in * destin
 	return *destinationAddress;
 }
 
-sockaddr_in6 getIpv6(struct hostent *server, string address, sockaddr_in6 * destinationAddress6){
+void getIpv6(struct hostent *server, string address, sockaddr_in6 * destinationAddress6){
 	bzero(destinationAddress6, sizeof(destinationAddress6));		//null the server address
 	inet_pton(AF_INET6, address.c_str(), &(destinationAddress6->sin6_addr));
 	destinationAddress6->sin6_family=AF_INET6;
 	destinationAddress6->sin6_port=htons(PORTNUM);
-	return *destinationAddress6;
+	
 }
 
 //Check whether the arguments are valid or not and assigns the values to apropriate variables.
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]){
 	if(string::npos!=address.find('.')){				//ipv4
 		destinationAddress=getIpv4(server, address, &destinationAddress);
 	}else if(string::npos!=address.find(':')) {											//ipv6
-		destinationAddress6=getIpv6(server,address, &destinationAddress6);
+		getIpv6(server,address, &destinationAddress6);
 		isIt6=true;
 	}else{
 		cout<<"translation needed"<<endl;
