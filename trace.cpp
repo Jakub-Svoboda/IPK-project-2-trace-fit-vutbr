@@ -179,7 +179,7 @@ int main(int argc, char* argv[]){
 				exit(-1);
 			}
 		}
-		cout<<"sent"<<endl;
+		cout<<"sent"<<first_ttl<<endl;
 		auto timeStart = steady_clock::now();			//start time measurement
 		while(1){															//cycles the recvmsg() until something arrives
 			int res;
