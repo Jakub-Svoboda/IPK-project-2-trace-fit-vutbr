@@ -136,7 +136,7 @@ int main(int argc, char* argv[]){
 	msg.msg_flags = 0; //žiadne flagy
 	msg.msg_control = buf; //predpokladám že buffer pre control správy
 	msg.msg_controllen = sizeof(buf);//obvious	
-	
+	struct sockaddr_in *sin;
 	
 	while(first_ttl<=max_ttl){
 		memset(buf,'\0', 1000);	//null the receive msg buffer
@@ -154,27 +154,28 @@ int main(int argc, char* argv[]){
 					 //bude treba niečo podobné aj pre IPv6 (hint: iný flag)
 					 if (e && e->ee_origin == SO_EE_ORIGIN_ICMP) {
 						/* získame adresu - ak to robíte všeobecne tak sockaddr_storage */
-						struct sockaddr_in *sin = (struct sockaddr_in *)(e+1); 						
-						char str[4082];
-						inet_ntop(AF_INET, &(sin->sin_addr), str, 4082);
-						cout<<str<<endl;
-						if(!strcmp(str, address.c_str())){
-							cout<<"target reached"<< endl;
-							exit(0);
-						}
-						first_ttl++;
-						cout<<first_ttl<< " ";
+						sin = (struct sockaddr_in *)(e+1); 						
 						
+						break;
 					}
 				}          
 			}
+			char str[4082];
+			inet_ntop(AF_INET, &(sin->sin_addr), str, 4082);
+			cout<<str<<endl;
+			if(!strcmp(str, address.c_str())){
+				cout<<"target reached"<< endl;
+				exit(0);
+			}
+			first_ttl++;
+			cout<<first_ttl<< " ";
+			setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
+			//send the message
+			if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
+				fprintf(stderr,"sendto() failed with error code %d\n",errno);
+				exit(-1);
+			}
+			break;			
 		}
-		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
-		//send the message
-		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
-			fprintf(stderr,"sendto() failed with error code %d\n",errno);
-			exit(-1);
-		}
-		break;
 	}	
 }
