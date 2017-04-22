@@ -138,13 +138,10 @@ int main(int argc, char* argv[]){
 	msg.msg_controllen = sizeof(buf);//obvious	
 	
 	
-
+	while(first_ttl<=max_ttl){
+		memset(buf,'\0', 1000);	//null the receive msg buffer
 		/* Receiving errors flog is set */
 		while(1){
-			memset(buf,'\0', 1000);	//null the receive msg buffer
-			if(first_ttl > max_ttl){
-				exit(0);
-			}
 			int res = recvmsg(clientSocket, &msg, MSG_ERRQUEUE); //prijme správu
 			if (res<0) continue;
 			
@@ -167,16 +164,17 @@ int main(int argc, char* argv[]){
 						}
 						first_ttl++;
 						cout<<first_ttl<< " ";
-						setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
-						//send the message
-						if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
-							fprintf(stderr,"sendto() failed with error code %d\n",errno);
-							exit(-1);
-						}
-						break;
+						
 					}
 				}          
 			}
 		}
-		
+		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
+		//send the message
+		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
+			fprintf(stderr,"sendto() failed with error code %d\n",errno);
+			exit(-1);
+		}
+		break;
+	}	
 }
