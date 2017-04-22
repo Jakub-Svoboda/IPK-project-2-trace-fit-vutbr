@@ -160,6 +160,7 @@ int main(int argc, char* argv[]){
 						char str[4000];
 						memset(str,'\0', 4000);
 						inet_ntop(AF_INET, &(sin->sin_addr), str, 4000);
+						cout<< sin.sin_addr<<endl;
 						cout<<str<<endl;
 						if(!strcmp(str, address.c_str())){
 							cout<<"target reached"<< endl;
@@ -168,7 +169,7 @@ int main(int argc, char* argv[]){
 					}
 				}          
 			}
-			//break;
+			break;
 		}
 	}	
 }
