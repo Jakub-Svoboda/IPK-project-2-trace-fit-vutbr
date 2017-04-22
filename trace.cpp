@@ -104,7 +104,7 @@ int main(int argc, char* argv[]){
 	packet.code = 0;
 	packet.un.echo.id = getpid();
 
-	int ttl = first_ttl; 		//set the desired first_ttl
+	int ttl = 4; 		//set the desired first_ttl
 	setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
 	int val=2;
 	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
@@ -170,7 +170,6 @@ int main(int argc, char* argv[]){
 							fprintf(stderr,"sendto() failed with error code %d\n",errno);
 							exit(-1);
 						}
-						cmsg=NULL;
 						break;
 						
 						 /*
