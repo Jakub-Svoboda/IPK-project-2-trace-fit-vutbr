@@ -129,8 +129,6 @@ int main(int argc, char* argv[]){
         fprintf(stderr,"Socket failed to create.\n");
         exit(EXIT_FAILURE);
     }
-		
-	uint32_t slen=sizeof(destinationAddress);
 	
 	struct icmphdr packet;
 	memset(&packet,0, sizeof(packet));
