@@ -153,7 +153,7 @@ int main(int argc, char* argv[]){
 					struct sockaddr_in * tmpAddress = (struct sockaddr_in *)(error+1); 							//get the address
 					char str[4000];
 					inet_ntop(AF_INET, &(tmpAddress->sin_addr), str, 4000);
-					cout<<first_ttl<<"\t"<< str<< "\t"<< duration_cast<milliseconds>(timeEnd-timeStart).count()<<endl;															//and print it
+					cout<<first_ttl<<"\t"<< str<< "\t"<< duration_cast<microseconds>(timeEnd-timeStart).count()<<endl;															//and print it
 					if(!strcmp(str, address.c_str())){
 						exit(0);						//the adress matches, program can exit
 					}
