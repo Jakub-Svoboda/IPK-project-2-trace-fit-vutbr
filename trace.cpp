@@ -30,12 +30,44 @@ sockaddr_in getIpv4(struct hostent *server, string address, sockaddr_in * destin
 	return *destinationAddress;
 }
 
+<<<<<<< HEAD
 sockaddr_in6 getIpv6(struct hostent *server, string address, sockaddr_in6 * destinationAddress6){
 	bzero(destinationAddress6, sizeof(destinationAddress6));		//null the server address
 	inet_pton(AF_INET6, address.c_str(), &(destinationAddress6->sin6_addr));
 	destinationAddress6->sin6_family=AF_INET6;
 	destinationAddress6->sin6_port=htons(PORTNUM);
 	return *destinationAddress6;
+=======
+struct addrinfo * getIP(string adress){
+	struct addrinfo hints, *res;
+	int errcode;
+	char addrstr[100];
+	void * ptr;
+	
+	memset (&hints, 0, sizeof (hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_flags |= AI_CANONNAME;
+	errcode = getaddrinfo (adress.c_str(), "33434", &hints, &res);
+	if (errcode != 0){
+      perror ("getaddrinfo");
+      exit (-1);
+    }
+
+	inet_ntop (res->ai_family, res->ai_addr->sa_data, addrstr, 100);
+	switch (res->ai_family){
+		case AF_INET:
+			ptr = &((struct sockaddr_in *) res->ai_addr)->sin_addr;
+			break;
+        case AF_INET6:
+			ptr = &((struct sockaddr_in6 *) res->ai_addr)->sin6_addr;
+			break;
+        }
+	inet_ntop (res->ai_family, ptr, addrstr, 100);
+	printf ("IPv%d address: %s (%s)\n", res->ai_family == PF_INET6 ? 6 : 4, addrstr, res->ai_canonname);
+	return res;
+	
+>>>>>>> 8eb15c75a606757747e9605c8196ebc838462289
 }
 
 //Check whether the arguments are valid or not and assigns the values to apropriate variables.
@@ -89,25 +121,33 @@ int main(int argc, char* argv[]){
 	struct hostent *server = NULL;	
 	validateArgs(&address,argc,argv, &first_ttl, &max_ttl);
 	struct sockaddr_in destinationAddress; 
+<<<<<<< HEAD
 	struct sockaddr_in6 destinationAddress6;
 	bool isIt6 = false;
+=======
+	struct addrinfo *ptr;
+>>>>>>> 8eb15c75a606757747e9605c8196ebc838462289
 	if(string::npos!=address.find('.')){				//ipv4
-		destinationAddress=getIpv4(server, address, &destinationAddress);
+		//destinationAddress=getIpv4(server, address, &destinationAddress);
+		ptr=getIP(address);
 	}else if(string::npos!=address.find(':')) {											//ipv6
+<<<<<<< HEAD
 		destinationAddress6=getIpv6(server,address, &destinationAddress6);
 		isIt6=true;
+=======
+		ptr =getIP(address);
+>>>>>>> 8eb15c75a606757747e9605c8196ebc838462289
 	}else{
 		cout<<"translation needed"<<endl;
 		exit(1);
 	}
+	cout<<ptr->ai_canonname<<endl;
 	uint32_t clientSocket;
 	//create a socket
 	if ((clientSocket=socket(AF_INET, SOCK_DGRAM, 0)) <=0){
         fprintf(stderr,"Socket failed to create.\n");
         exit(EXIT_FAILURE);
     }
-		
-	uint32_t slen=sizeof(destinationAddress);
 	
 	struct icmphdr packet;
 	memset(&packet,0, sizeof(packet));
@@ -151,6 +191,7 @@ int main(int argc, char* argv[]){
 		
 		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
 		//send the message
+<<<<<<< HEAD
 		while(1){
 		if(!isIt6){
 			if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
@@ -163,6 +204,11 @@ int main(int argc, char* argv[]){
 				exit(-1);
 			}
 		}
+=======
+		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (const sockaddr *) ptr, sizeof(* ptr))) <= 0){
+			fprintf(stderr,"sendto() failed with error code %d\n",errno);
+			exit(-1);
+>>>>>>> 8eb15c75a606757747e9605c8196ebc838462289
 		}
 		auto timeStart = steady_clock::now();			//start time measurement
 		while(1){															//cycles the recvmsg() until something arrives
