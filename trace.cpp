@@ -147,7 +147,8 @@ int main(int argc, char* argv[]){
 			int res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
 			if (res<0) continue;
 			auto timeEnd = steady_clock::now();
-			if( (duration_cast<microseconds>(timeEnd-timeStart).count()) > 2000000){			//2 seconds timeout
+			if( (duration_cast<microseconds>(timeEnd-timeStart).count()) > 20){			//2 seconds timeout
+				cout<<first_ttl<<"\t"<< "timeout reached" << "\t"<< "*" <<endl;
 				exit(-1);
 			}	
 			for (controlMessage = CMSG_FIRSTHDR(&messageHeader);  controlMessage; controlMessage = CMSG_NXTHDR(&messageHeader, controlMessage)) {
