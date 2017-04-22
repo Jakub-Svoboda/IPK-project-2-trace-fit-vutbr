@@ -126,36 +126,34 @@ int main(int argc, char* argv[]){
 	char buf[1000];
 	
 	while(first_ttl<=max_ttl){
-		memset(buf,'\0', 1000);
-		struct msghdr msg; //prijatá správa - môže obsahovať viac control hlavičiek
-		struct cmsghdr *cmsg; //konkrétna control hlavička
-		struct icmphdr icmph; //ICMP hlavička
+		memset(buf,'\0', 1000);							//null the receive buffer
+		struct msghdr messageHeader; 								//prijatá správa - môže obsahovať viac control hlavičiek
+		struct cmsghdr *controlMessage; 							//konkrétna control hlavička
+		struct icmphdr icmph; 							//received ICMP header
 		
-		struct iovec inputOutputVector; //io štruktúra
-		inputOutputVector.iov_base = &icmph; //budeme prijímať ICMP hlavičku
-		inputOutputVector.iov_len = sizeof(icmph); //dĺžka bude veľkosť ICMP hlavičky (obviously)
-		
-		
-		
-				msg.msg_name = &target; //tu sa uloží cieľ správy, teda adresa nášho stroja
-		msg.msg_namelen = sizeof(target); //obvious
-		msg.msg_iov = &inputOutputVector; //opäť tá icmp hlavička
-		msg.msg_iovlen = 1; //počet hlavičiek
-		msg.msg_flags = 0; //žiadne flagy
-		msg.msg_control = buf; //predpokladám že buffer pre control správy
-		msg.msg_controllen = sizeof(buf);//obvious	
+		struct iovec inputOutputVector; 				//iovec structure
+		inputOutputVector.iov_base = &icmph; 			//set base to the reveived ICMP header
+		inputOutputVector.iov_len = sizeof(icmph); 		
+
+		messageHeader.msg_name = &target; //tu sa uloží cieľ správy, teda adresa nášho stroja
+		messageHeader.msg_namelen = sizeof(target); //obvious
+		messageHeader.msg_iov = &inputOutputVector; //opäť tá icmp hlavička
+		messageHeader.msg_iovlen = 1; //počet hlavičiek
+		messageHeader.msg_flags = 0; //žiadne flagy
+		messageHeader.msg_control = buf; //predpokladám že buffer pre control správy
+		messageHeader.msg_controllen = sizeof(buf);//obvious	
 	
 		/* Receiving errors flog is set */
 		while(1){
-			int res = recvmsg(clientSocket, &msg, MSG_ERRQUEUE); //prijme správu
+			int res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); //prijme správu
 			if (res<0) continue;
 			
 			/* lineárne viazaný zoznam - dá sa to napísať aj krajšie... */
-			for (cmsg = CMSG_FIRSTHDR(&msg);  cmsg; cmsg =CMSG_NXTHDR(&msg, cmsg)) {
+			for (controlMessage = CMSG_FIRSTHDR(&messageHeader);  controlMessage; controlMessage =CMSG_NXTHDR(&messageHeader, controlMessage)) {
 				/* skontrolujeme si pôvod správy - niečo podobné nám bude treba aj pre IPv6 */
-				if (cmsg->cmsg_level == SOL_IP && cmsg->cmsg_type == IP_RECVERR){
+				if (controlMessage->cmsg_level == SOL_IP && controlMessage->cmsg_type == IP_RECVERR){
 					 //získame dáta z hlavičky
-					 struct sock_extended_err *e = (struct sock_extended_err*) CMSG_DATA(cmsg);
+					 struct sock_extended_err *e = (struct sock_extended_err*) CMSG_DATA(controlMessage);
 					 //bude treba niečo podobné aj pre IPv6 (hint: iný flag)
 					 if (e && e->ee_origin == SO_EE_ORIGIN_ICMP) {
 						/* získame adresu - ak to robíte všeobecne tak sockaddr_storage */
