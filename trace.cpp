@@ -170,6 +170,7 @@ int main(int argc, char* argv[]){
 							fprintf(stderr,"sendto() failed with error code %d\n",errno);
 							exit(-1);
 						}
+						cmsg=NULL;
 						break;
 						
 						 /*
