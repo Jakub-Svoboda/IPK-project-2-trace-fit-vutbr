@@ -142,7 +142,6 @@ int main(int argc, char* argv[]){
 			exit(-1);
 		}
 		auto timeStart = steady_clock::now();			//start time measurement
-		cout<<"recvmsg foo: "<<endl;
 		while(1){															//cycles the recvmsg() until something arrives
 			int res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
 			auto timeTmp = steady_clock::now();
