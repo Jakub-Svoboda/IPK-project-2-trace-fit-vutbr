@@ -107,7 +107,7 @@ int main(int argc, char* argv[]){
 	packet.un.echo.id = getpid();
 
 	int val=2;
-	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
+	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));			//obsolete now
 
 	//receive
 	val=1;
@@ -142,12 +142,12 @@ int main(int argc, char* argv[]){
 			exit(-1);
 		}
 		auto timeStart = steady_clock::now();			//start time measurement
-	
+		cout<<"recvmsg cycles: "<<endl;
 		while(1){															//cycles the recvmsg() until something arrives
 			int res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
 			if (res<0) continue;
 			auto timeEnd = steady_clock::now();
-			if( (duration_cast<microseconds>(timeEnd-timeStart).count()) > 2000000){			//2 seconds timeout
+			if((duration_cast<microseconds>(timeEnd-timeStart).count()) > 2000000){			//2 seconds timeout
 				cout<<first_ttl<<"\t"<< "timeout reached" << "\t"<< "*" <<endl;
 				exit(-1);
 			}	
