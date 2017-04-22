@@ -110,7 +110,7 @@ int main(int argc, char* argv[]){
 	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));
 
 	//send the message
-	cout<<"  "<<first_ttl;
+	cout<<"\t"<<first_ttl;
 	if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
 		fprintf(stderr,"sendto() failed with error code %d\n",errno);
 		exit(-1);
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]){
 		first_ttl++;
 		setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
 		//send the message
-		cout <<first_ttl<<"  ";
+		cout <<first_ttl<<"\t";
 		if ((sendto(clientSocket, &packet, sizeof(packet) , 0 , (struct sockaddr *) &destinationAddress, slen)) <= 0){
 			fprintf(stderr,"sendto() failed with error code %d\n",errno);
 			exit(-1);
