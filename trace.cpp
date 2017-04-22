@@ -100,12 +100,7 @@ int main(int argc, char* argv[]){
 		cout<<"translation needed"<<endl;
 		exit(1);
 	}
-	char astring[INET6_ADDRSTRLEN];
-	// sockaddr_in6 to IPv6 string.
-	inet_ntop(AF_INET6, &(destinationAddress6.sin6_addr), astring, INET6_ADDRSTRLEN);
-	printf("%s\n", astring);
-	
-	
+		
 	uint32_t clientSocket, socket6;
 	//create a socket
 	if(!isIt6){
@@ -137,10 +132,8 @@ int main(int argc, char* argv[]){
 	}else{
 		setsockopt(clientSocket, SOL_IP, IP_RECVERR,(char*)&val, sizeof(val));		//turn on errors for ipv4
 	}
-		
-	
 
-	struct sockaddr_storage target; 					//compatible with ipv4 and ipv6 //TODO is it really?
+	struct sockaddr_storage target; 					//compatible with ipv4 and ipv6 
 	char buf[1000];
 
 	while(first_ttl<=max_ttl){
@@ -194,6 +187,7 @@ int main(int argc, char* argv[]){
 				break;
 			}
 			if (res<0) continue;
+			cout<<res<<endl;
 			auto timeEnd = steady_clock::now();
 				
 			for (controlMessage = CMSG_FIRSTHDR(&messageHeader);  controlMessage; controlMessage = CMSG_NXTHDR(&messageHeader, controlMessage)) {
