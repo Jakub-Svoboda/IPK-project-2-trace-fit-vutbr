@@ -147,14 +147,13 @@ int main(int argc, char* argv[]){
 			int res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
 			if (res<0) continue;
 			auto timeEnd = steady_clock::now();	
-			std::cout << "that took " << duration_cast<milliseconds>(timeEnd-timeStart).count()<< " milliseconds\n" ;			
 			for (controlMessage = CMSG_FIRSTHDR(&messageHeader);  controlMessage; controlMessage = CMSG_NXTHDR(&messageHeader, controlMessage)) {
 				 struct sock_extended_err *error = (struct sock_extended_err*) CMSG_DATA(controlMessage);		//get the data from the header
 				 if (error && error->ee_origin == SO_EE_ORIGIN_ICMP) {											//error must be ICMP type
 					struct sockaddr_in * tmpAddress = (struct sockaddr_in *)(error+1); 							//get the address
 					char str[4000];
 					inet_ntop(AF_INET, &(tmpAddress->sin_addr), str, 4000);
-					cout<<first_ttl<<"\t"<< str<<endl;															//and print it
+					cout<<first_ttl<<"\t"<< str<< "\t"<< duration_cast<milliseconds>(timeEnd-timeStart).count()<<endl;															//and print it
 					if(!strcmp(str, address.c_str())){
 						exit(0);						//the adress matches, program can exit
 					}
