@@ -5,11 +5,9 @@
 #include <string.h>
 #include <iostream>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/ip_icmp.h>
-#include <pthread.h>
 #include <linux/errqueue.h>
 #include <chrono> 
 
@@ -177,7 +175,7 @@ int main(int argc, char* argv[]){
 			if(!isIt6){
 				res = recvmsg(clientSocket, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
 			}else{
-				res = recvmsg(socket6, &messageHeader, MSG_ERRQUEUE); 	//reveive the message
+				res = recvmsg(socket6, &messageHeader, MSG_ERRQUEUE); 		//reveive the message
 			}
 			auto timeTmp = steady_clock::now();
 			if((duration_cast<microseconds>(timeTmp-timeStart).count()) > 2000000){			//2 seconds timeout
@@ -185,7 +183,7 @@ int main(int argc, char* argv[]){
 				break;
 			}
 			if (res<0) continue;
-			auto timeEnd = steady_clock::now();
+			auto timeEnd = steady_clock::now();								//stop the clock timer
 				
 			for (controlMessage = CMSG_FIRSTHDR(&messageHeader);  controlMessage; controlMessage = CMSG_NXTHDR(&messageHeader, controlMessage)) {
 				 struct sock_extended_err *error = (struct sock_extended_err*) CMSG_DATA(controlMessage);		//get the data from the header
