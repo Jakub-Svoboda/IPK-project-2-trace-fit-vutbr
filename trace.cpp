@@ -189,7 +189,7 @@ int main(int argc, char* argv[]){
 				
 			for (controlMessage = CMSG_FIRSTHDR(&messageHeader);  controlMessage; controlMessage = CMSG_NXTHDR(&messageHeader, controlMessage)) {
 				 struct sock_extended_err *error = (struct sock_extended_err*) CMSG_DATA(controlMessage);		//get the data from the header
-				 if (error && error->ee_origin == SO_EE_ORIGIN_ICMP) {											//error must be ICMP type
+				 if (error && error->ee_origin == SO_EE_ORIGIN_ICMP) {		//ipv4								//error must be ICMP type
 					struct sockaddr_in * tmpAddress = (struct sockaddr_in *)(error+1); 							//get the address
 					char str[4000];
 					inet_ntop(AF_INET, &(tmpAddress->sin_addr), str, 4000);
