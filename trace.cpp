@@ -203,7 +203,7 @@ int main(int argc, char* argv[]){
 					if(!strcmp(str, address.c_str())){
 						exit(0);						//the adress matches, program can exit
 					}
-				}else{				//IPv6
+				}else if (isIt6){				//IPv6
 					struct sockaddr_in6 * tmpAddress = (struct sockaddr_in6 *)(error+1); 							//get the address
 					char str[4000];
 					inet_ntop(AF_INET6, &(tmpAddress->sin6_addr), str, 4000);
