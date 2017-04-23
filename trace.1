@@ -1,0 +1,19 @@
+**NAME**
+>**trace** - prints the route packets trace to the destination server
+
+**SYNOPSIS**
+>**trace** [-f FIRST_TTL] [-m MAX_TTL] destination
+
+**DESCRIPTION**
+>**Trace**  is an application that traces the route from your local computer to the destination server. This is achieved by sending UDP packets with variable TTL and reading the returned ICMP messages.
+
+**OPTIONS**
+
+>**-f** Specifies the first TTL value the program will begin with. If no value is given the default value of 1 will be used.    
+
+>**-m** Sets the maximum value of TTL that the packet will be sent with. If no value is given, the default value of 30 will be used to reach the destination. Please that if the MAX_TTL value is lesser than the number of hops required to reach the target, then program will not reach its final destination.
+
+
+**BUGS**
+>Some servers (peering servers usually, for example: nix2.seznam.cz [91.210.16.194]) do not send back the ICMP message. This results in the "timenout reached" error. The same behaviour can be observed in the default linux traceroute application on the Merlin server, so this behaviour is most likely not a bug.
+

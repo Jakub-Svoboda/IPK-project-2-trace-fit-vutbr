@@ -1,3 +1,9 @@
+/*
+*	Project: 	IPK 2 - trace
+*	Author: 	Jakub Svoboda - xsvobo0z
+*	Date:		23.4.2017
+*/
+
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,10 +17,11 @@
 #include <linux/errqueue.h>
 #include <chrono> 
 
-#define PORTNUM 33434
+#define PORTNUM 33434												//reserved for pings
 using namespace std;
-using namespace std::chrono ;
+using namespace std::chrono;
 
+//fills the ipv4 adress with appropriate data
 sockaddr_in getIpv4(struct hostent *server, string address, sockaddr_in * destinationAddress){
 	bzero(destinationAddress, sizeof(* destinationAddress));		//null the server address
 	uint32_t addressNum = inet_addr(address.c_str()); 
@@ -28,6 +35,7 @@ sockaddr_in getIpv4(struct hostent *server, string address, sockaddr_in * destin
 	return *destinationAddress;
 }
 
+//fills the ipv6 adress with appropriate data
 void getIpv6(struct hostent *server, string address, sockaddr_in6 * destinationAddress6){
 	bzero(destinationAddress6, sizeof(* destinationAddress6));		//null the server address
 	inet_pton(AF_INET6, address.c_str(), &(destinationAddress6->sin6_addr));
@@ -94,34 +102,34 @@ int main(int argc, char* argv[]){
 	}else if(string::npos!=address.find(':')) {											//ipv6
 		getIpv6(server,address, &destinationAddress6);
 		isIt6=true;
-	}else{
-		cout<<"translation needed"<<endl;
+	}else{												//invalid format or domain name was given
+		cout<<"Invalid ip adress."<<endl;
 		exit(1);
 	}
 		
 	uint32_t clientSocket, socket6;
 	//create a socket
 	if(!isIt6){
-		if ((clientSocket=socket(AF_INET, SOCK_DGRAM, 0)) <=0){
+		if ((clientSocket=socket(AF_INET, SOCK_DGRAM, 0)) <=0){			//ipv4 socket
 			fprintf(stderr,"Socket failed to create.\n");
 			exit(EXIT_FAILURE);
 		}
 	}else{
-		if ((socket6=socket(AF_INET6, SOCK_DGRAM, 0)) <=0){
+		if ((socket6=socket(AF_INET6, SOCK_DGRAM, 0)) <=0){				//ipv6 socket
 			fprintf(stderr,"Socket failed to create.\n");
 			exit(EXIT_FAILURE);
 		}
 	}	
 	uint32_t slen=sizeof(destinationAddress);
 	
-	struct icmphdr packet;
+	struct icmphdr packet;												//icmp header , probably obsolete
 	memset(&packet,0, sizeof(packet));
 	packet.type = ICMP_ECHO;
 	packet.code = 0;
 	packet.un.echo.id = getpid();
 
 	int val=2;
-	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));			//obsolete now
+	setsockopt(clientSocket, SOL_IP, SO_RCVTIMEO, &val, sizeof(val));			//obsolete now, socket is nonblocking
 
 	//receive
 	val=1;
@@ -145,13 +153,13 @@ int main(int argc, char* argv[]){
 		inputOutputVector.iov_len = sizeof(icmph); 		
 
 		messageHeader.msg_iov = &inputOutputVector; 	
-		messageHeader.msg_iovlen = 1; 					//number of headers?
+		messageHeader.msg_iovlen = 1; 					//number of headers
 		messageHeader.msg_name = &target; 				
 		messageHeader.msg_namelen = sizeof(target); 	
 		messageHeader.msg_control = buf; 				
 		messageHeader.msg_controllen = sizeof(buf);	
 
-		if(isIt6){
+		if(isIt6){										//sets TTL
 			setsockopt(socket6, IPPROTO_IPV6, IPV6_UNICAST_HOPS, &first_ttl, sizeof(first_ttl));
 		}else{
 			setsockopt(clientSocket, IPPROTO_IP, IP_TTL, &first_ttl, sizeof(first_ttl));
@@ -182,7 +190,7 @@ int main(int argc, char* argv[]){
 				cout<<first_ttl<<"\t"<< "timeout reached" << "\t"<< "*" <<endl;
 				break;
 			}
-			if (res<0) continue;
+			if (res<0) continue;											//nothing received, try again
 			auto timeEnd = steady_clock::now();								//stop the clock timer
 				
 			for (controlMessage = CMSG_FIRSTHDR(&messageHeader);  controlMessage; controlMessage = CMSG_NXTHDR(&messageHeader, controlMessage)) {
